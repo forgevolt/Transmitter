@@ -25,8 +25,8 @@ The 50% infill on the top and bottom shells of the two-joystick variant is delib
 the parts a hand loads when the sticks are pushed to their end stops.
 
 Materials that have been printed successfully: **ABS-GF, PLA-GF, PLA-CF, PETG-CF**. The
-glass- and carbon-filled variants are there for stiffness rather than appearance; plain PLA prints
-fine but flexes noticeably around the joystick cut-outs.
+glass- and carbon-filled variants are there for stiffness rather and appearance; plain PLA prints
+fine and does not flex around the joystick cut-outs.
 
 ## Opening the CAD
 
