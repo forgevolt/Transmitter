@@ -15,8 +15,7 @@ stored on the device, and is announced to the robot when the link comes up.
 ## What it does
 
 **Sends controls 20 times a second** — two 3-axis joysticks at ±1000 per axis, their two
-buttons, three switches, and the transmitter's own tilt on two axes from the IMU. A fourth
-switch opens the menu and stays local.
+buttons, four switches, and the transmitter's own tilt on two axes from the IMU. 
 
 **Takes its screen contents from the robot.** The robot sends back a name and an icon for
 itself, a caption for each switch and button, and up to four label/value pairs. So a hexapod can
