@@ -18,7 +18,7 @@ what makes it possible to change an icon later - the headers themselves are not 
 | `img1Joy.png` | `img1Joy.h` | the one-joystick device in the setup menu |
 | `img2Joy.png` | `img2Joy.h` | the two-joystick device in the setup menu |
 | `imgHexapod.png` | `imgHexapod.h` | a paired hexapod |
-| `imgUnknowReceiver.png` | `imgUnknownReceiver.h` | a paired robot that sent no icon |
+| `imgUnknowReceiver.png` | `imgUnknownReceiver.h` | a paired robot that has no dedicated icon |
 
 ## Wiring
 
