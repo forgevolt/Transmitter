@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# excluded directories
+do_not_publish/
+
+# Arduino IDE build output
+build/
+*.bin
+*.elf
+*.map
+
+# Editor / IDE
+.vscode/
+.idea/
+*.theia-workspace
