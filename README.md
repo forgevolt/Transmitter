@@ -17,10 +17,10 @@ stored on the device, and is announced to the robot when the link comes up.
 **Sends controls 20 times a second** — two 3-axis joysticks at ±1000 per axis, their two
 buttons, four switches, and the transmitter's own tilt on two axes from the IMU. 
 
-**Takes its screen contents from the robot.** The robot sends back a name and an icon for
-itself, a caption for each switch and button, and up to four label/value pairs. So a hexapod can
-label a switch `Gait` and display `height=` `13.4` without this firmware knowing anything about
-hexapods.
+**Takes its screen contents from the robot.** The robot sends back a name, a device id (the 
+transmitter presents an icon based on that information), a caption for each switch and button, 
+and up to four label/value pairs. So a hexapod can label a switch `Gait` and display 
+`height=` `13.4` without this firmware knowing anything about hexapods.
 
 **Pairs by itself.** The robot broadcasts, the transmitter answers, and from then on each end
 accepts frames only from the other. One peer at a time, dropped after a second of silence and
@@ -55,13 +55,13 @@ sound at start-up.
 1. Install the required libraries (see **Dependencies** below).
 2. Open `software/Transmitter/Transmitter.ino` in the Arduino IDE.
 3. Select board *ESP32 Dev Module* with 8 MB flash.
-4. Upload.
+4. Partition Scheme: "Custom"
+5. Upload.
 
-The partition scheme is not a menu setting here. `software/Transmitter/partitions.csv` sits in the
-sketch folder, and the ESP32 core uses it in preference to whatever *Tools → Partition Scheme*
-says: a 6 MB application partition plus a 1.9 MB LittleFS partition. Nothing in the firmware writes
-to that filesystem today — calibration and settings live in NVS — so there is nothing to upload to
-it, but the space is reserved.
+The partition scheme `software/Transmitter/partitions.csv` sits in the
+sketch folder, and the ESP32 core uses it: a 6 MB application partition plus a 1.9 MB LittleFS 
+partition. Nothing in the firmware writes to that filesystem today — calibration and settings 
+live in NVS — so there is nothing to upload to it, but the space is reserved.
 
 The display needs no setting up: `software/Transmitter/build_opt.h` configures TFT_eSPI as part of
 the build. See [software/Config/TFT_eSPI](software/Config/TFT_eSPI/README.md) if you would rather
