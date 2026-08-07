@@ -2,8 +2,8 @@
 
 A general-purpose ESP32 remote control for small robots. It is not tied to any one machine: the
 link carries a fixed set of controls, and the robot at the other end decides what they mean and
-what the screen shows. A hexapod is the first thing it was built to drive; adding another robot
-is a change to that robot's firmware, not to this one.
+what the screen shows. A [hexapod](https://github.com/forgevolt/Hexapod) is the first thing it
+was built to drive; adding another robot is a change to that robot's firmware, not to this one.
 
 It comes in two variants, with one or two joysticks. Which one is running is a menu setting
 stored on the device, and is announced to the robot when the link comes up.
@@ -50,6 +50,24 @@ sound at start-up.
 | [`hardware/`](hardware) | PCB: EasyEDA project, Gerbers, schematic, bill of materials |
 | [`mechanics/`](mechanics) | Housing: Fusion source, STLs, print profiles |
 | [`docs/`](docs) | Photographs, wiring notes, display-image sources |
+
+## The other end of the link
+
+`software/Transmitter/RCProtocol.h` **is the master copy of the wire format.** It describes what
+this transmitter can send and what it can display, so its shape follows this hardware rather
+than any one robot's needs - which is why it lives here and not in the robot.
+
+Every robot driven by this transmitter carries a copy of that file, because Arduino cannot
+include across sketch folders. **Edit it here, then copy the result to each robot.**
+`cAppProtocolVersion` is the guard: both ends check it on every frame, so a copy that has
+fallen behind shows up as a logged mismatch at pairing rather than as silently misread data.
+
+The robot announces itself with an `EDeviceType`, which is how the transmitter picks the icon
+to show for it:
+
+| Robot | `EDeviceType` |
+|---|---|
+| [Hexapod](https://github.com/forgevolt/Hexapod) | `eHexapod` |
 
 ## Getting Started
 1. Install the required libraries (see **Dependencies** below).
