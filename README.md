@@ -103,7 +103,7 @@ Versions are the ones this project is built and tested against.
 | Adafruit MAX1704X | 1.0.3 | |
 | Adafruit BusIO | 1.17.4 | dependency of MAX1704X |
 | [ESPNowUtilities](https://github.com/forgevolt/ESPNowUtilities) | 1.0.0 | the ESP-NOW transport `RCProtocol.h` is built on |
-| [SoundEngine](https://github.com/forgevolt/SoundEngine) | 1.0.0 | `SoundEngine.h` and the `sounds/` clips |
+| [SoundEngine](https://github.com/forgevolt/SoundEngine) | 1.1.0 | `SoundEngine.h` and the `sounds/` clips |
 
 ## License
 This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
