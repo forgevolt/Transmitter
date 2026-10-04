@@ -42,8 +42,8 @@ enum EAppMsgType : uint8_t
 enum EDeviceType : uint8_t
 {
   eUndefined = 0, // must stay 0: the transport defaults the pairing frames' device field to it
-  eTransmitter1Joy, // 1 joystick configuration
-  eTransmitter2Joy, // 2 joysticks configuration
+  eTransmitter1Joy, // 1-joystick configuration
+  eTransmitter2Joy, // 2-joystick configuration
   eHexapod,
   eBalancingCube
 };
@@ -67,7 +67,7 @@ constexpr size_t cNumButtons  = 2;
 constexpr size_t cNumMessages = 4;
 constexpr size_t cLabelLen    = 16;
 
-// ---- Information of the RC transmitter, i.e. joystick values, states of the switches, ...
+// ---- Information from the RC transmitter, e.g. joystick values, states of the switches, ...
 
 struct __attribute__((packed)) TransmitterData
 {
@@ -82,8 +82,8 @@ struct __attribute__((packed)) TransmitterData
   // read, and nothing constrains what arrives here. Treat any non-zero value as true.
   uint8_t joyLBtn = 0, joyRBtn = 0;              // the two joystick buttons
 
-  // The four switches. All four are sent whatever the transmitter uses them for. At present 
-  // SWITCH 1 opens the transmitter's own menu, so switch1 also tells the robot that the 
+  // The four switches. All four are sent whatever the transmitter uses them for. At present
+  // SWITCH 1 opens the transmitter's own menu, so switch1 also tells the robot that the
   // operator is in the menu and that the zeroed axes in this frame are deliberate. A robot
   // that assigns a function to switch1 will therefore see it toggle whenever the menu is opened.
   uint8_t switch1 = 0, switch2 = 0, switch3 = 0, switch4 = 0;
@@ -107,7 +107,8 @@ struct __attribute__((packed)) TelemetryData
   // Up to cNumMessages label/value pairs, e.g. { "height=", "13.4" }
   char messages[cNumMessages][2][cLabelLen] = {};
 
-  // Additional information e.g. position of the servos or vectors, indicating the position of the legs
+  // Planned: additional information, e.g. servo positions or vectors giving the position of
+  // the legs
 };
 
 
