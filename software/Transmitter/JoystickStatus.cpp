@@ -182,14 +182,14 @@ void JoystickStatus::drawSliderA(float x, float y, int val, bool btnPressed)
   {
     if (val <= 0)
     {
-      float sx = -sinf((mapf(val, Joystick3Axis::cMIN, 0, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0 + x;
-      float sy = +cosf((mapf(val, Joystick3Axis::cMIN, 0, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0 + y;
+      float sx = -sinf((mapf(val, Joystick3Axis::cMIN, 0, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + x;
+      float sy = +cosf((mapf(val, Joystick3Axis::cMIN, 0, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + y;
       myBuf.drawSpot(sx, sy, cSpotR, cSpotCol);
     }
     else
     {
-      float sx = -sinf(mapf(val, 0, Joystick3Axis::cMAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0 + x;
-      float sy = +cosf(mapf(val, 0, Joystick3Axis::cMAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0 + y;
+      float sx = -sinf(mapf(val, 0, Joystick3Axis::cMAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + x;
+      float sy = +cosf(mapf(val, 0, Joystick3Axis::cMAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + y;
       myBuf.drawSpot(sx, sy, cSpotR, cSpotCol);
     }
   }

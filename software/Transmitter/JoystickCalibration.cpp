@@ -366,14 +366,14 @@ void JoystickCalibration::drawSliderA(float x, float y, int min, int max, int ce
     // Dynamic visualization of current axis position
     if (raw <= center)
     {
-      float sx = -sinf((mapf(raw, Joystick3Axis::cADC_MIN, center, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0 + x;
-      float sy = +cosf((mapf(raw, Joystick3Axis::cADC_MIN, center, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0 + y;
+      float sx = -sinf((mapf(raw, Joystick3Axis::cADC_MIN, center, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + x;
+      float sy = +cosf((mapf(raw, Joystick3Axis::cADC_MIN, center, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + y;
       myUI.tft().drawSpot(sx, sy, cSpotR, TFT_NAVY, TFT_NAVY);
     }
     else
     {
-      float sx = -sinf(mapf(raw, center, Joystick3Axis::cADC_MAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0 + x;
-      float sy = +cosf(mapf(raw, center, Joystick3Axis::cADC_MAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0 + y;
+      float sx = -sinf(mapf(raw, center, Joystick3Axis::cADC_MAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + x;
+      float sy = +cosf(mapf(raw, center, Joystick3Axis::cADC_MAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + y;
       myUI.tft().drawSpot(sx, sy, cSpotR, TFT_NAVY, TFT_NAVY);
     }
   }

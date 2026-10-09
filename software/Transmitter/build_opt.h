@@ -1,3 +1,6 @@
+-Wall
+-Wextra
+-Wdouble-promotion
 -Wsign-compare
 -DUSER_SETUP_LOADED
 -DDISABLE_ALL_LIBRARY_WARNINGS
