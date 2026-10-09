@@ -5,8 +5,6 @@
 // ---- FPSToggle -------------------------------------------------------------------------
 // Allows to toggle (on/off) FPS information.
 
-extern bool showFPS;
-
 class FPSToggle : public MenuItem
 {
   public:
@@ -18,4 +16,10 @@ class FPSToggle : public MenuItem
 
     // From class MenuItem
     void start() override;
+
+    // true: the FPS are shown on screen
+    bool isOn() const { return myShowFPS; }
+
+  private:
+    bool myShowFPS;
 };

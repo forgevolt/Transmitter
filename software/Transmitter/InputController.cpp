@@ -4,7 +4,12 @@
 
 // ---- InputController -------------------------------------------------------------------
 
+namespace
+{
+
 constexpr uint16_t cDebounceIntervalMs = 5; // 5 ms
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 InputController::InputController()

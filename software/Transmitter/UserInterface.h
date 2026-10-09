@@ -8,23 +8,23 @@
 
 // Constants related to the graphical objects
 
-const uint32_t cBorderCol   = 0xAD55;    // border color of the display objects
-const uint32_t cBorderColNA = 0x2945;    // border color when not active (e.g. joystick not installed)
+constexpr uint32_t cBorderCol   = 0xAD55;    // border color of the display objects
+constexpr uint32_t cBorderColNA = 0x2945;    // border color when not active (e.g. joystick not installed)
 
-const int32_t cTFTWidth         = 480;
-const int32_t cTFTHeight        = 320;
+constexpr int32_t cTFTWidth         = 480;
+constexpr int32_t cTFTHeight        = 320;
 
-const int32_t cStatusAreaWidth  = cTFTWidth - 20; // Status area e.g. battery symbol, etc.
-const int32_t cStatusAreaHeight = 40;
-const int32_t cStatusAreaPosX   = 10;
-const int32_t cStatusAreaPosY   = 10;
-const uint32_t cStatusAreaCol   = 0x10A2;
+constexpr int32_t cStatusAreaWidth  = cTFTWidth - 20; // Status area e.g. battery symbol, etc.
+constexpr int32_t cStatusAreaHeight = 40;
+constexpr int32_t cStatusAreaPosX   = 10;
+constexpr int32_t cStatusAreaPosY   = 10;
+constexpr uint32_t cStatusAreaCol   = 0x10A2;
 
-const int32_t cMainAreaWidth  = cStatusAreaWidth;
-const int32_t cMainAreaHeight = 255;
-const int32_t cMainAreaPosX   = cStatusAreaPosX;
-const int32_t cMainAreaPosY   = 60;
-const uint32_t cMainAreaCol   = cStatusAreaCol;
+constexpr int32_t cMainAreaWidth  = cStatusAreaWidth;
+constexpr int32_t cMainAreaHeight = 255;
+constexpr int32_t cMainAreaPosX   = cStatusAreaPosX;
+constexpr int32_t cMainAreaPosY   = 60;
+constexpr uint32_t cMainAreaCol   = cStatusAreaCol;
 
 
 // ---- UserInterface ---------------------------------------------------------------------

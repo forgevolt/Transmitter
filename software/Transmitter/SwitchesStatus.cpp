@@ -6,6 +6,9 @@
 
 // ---- SwitchesStatus --------------------------------------------------------------------
 
+namespace
+{
+
 // Constants related to the graphical objects
 const float cRectWidth   = 15.0f;    // total length is cRectWidth + 2*cRectR
 const float cRectHeight  = 15.0f;
@@ -15,6 +18,8 @@ const uint32_t cHighCol  = 0x46AB;
 
 const int32_t cPosY     = cMainAreaPosY + 20;
 const int32_t cInc      = 40;
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 SwitchesStatus::SwitchesStatus(UserInterface& ui)

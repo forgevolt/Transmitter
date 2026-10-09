@@ -3,12 +3,18 @@
 
 // ---- FPSStatus -------------------------------------------------------------------------
 
+namespace
+{
+
 const float cPosX = 350;
 const float cPosY = 22; 
 
+} // namespace
+
 // ----------------------------------------------------------------------------------------
-FPSStatus::FPSStatus(UserInterface& ui)
+FPSStatus::FPSStatus(UserInterface& ui, const FPSToggle& toggle)
 : DisplayObject(ui),
+  myToggle(toggle),
   myFPS(0), myFPSCounter(0), myStime(esp_timer_get_time())
 {}
 
@@ -37,7 +43,7 @@ void FPSStatus::draw(bool forceRedraw)
 
   clearRedrawFlags();
 
-  if (showFPS == false)
+  if (myToggle.isOn() == false)
     return;
 
   myUI.tft().setTextDatum(TR_DATUM);

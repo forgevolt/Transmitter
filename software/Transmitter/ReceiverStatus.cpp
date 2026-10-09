@@ -10,6 +10,9 @@
 
 // ---- ReceiverStatus --------------------------------------------------------------------
 
+namespace
+{
+
 const uint32_t cPairedCol    = 0x4CBB; 
 const uint32_t cNotPairedCol = 0xE0E3;
 
@@ -20,6 +23,8 @@ const int32_t cIconRectPosX   = 80;
 const int32_t cIconRectPosY   = cMainAreaPosY+55;
 const int32_t cIconRectHeight = 120;
 const int32_t cIconRectWidth  = cTFTWidth-2*cIconRectPosX;
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 ReceiverStatus::ReceiverStatus(UserInterface& ui, Transmitter& transmitter)

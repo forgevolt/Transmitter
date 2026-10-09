@@ -3,13 +3,16 @@
 
 // ---- FPSToggle -------------------------------------------------------------------------
 
+namespace
+{
+
 const String cMenuNameOn  = "Show FPS";
 const String cMenuNameOff = "Hide FPS";
 
-static const char* cPreferencesNS = "FPS";
-static const char* cKey           = "showFPS";
+constexpr const char* cPreferencesNS = "FPS";
+constexpr const char* cKey           = "showFPS";
 
-bool showFPS; // global
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 FPSToggle::FPSToggle(UserInterface& ui, Menu& menu)
@@ -18,10 +21,10 @@ FPSToggle::FPSToggle(UserInterface& ui, Menu& menu)
   // Read FPS configuration from preferences
   Preferences p;
   p.begin(cPreferencesNS);
-  showFPS = p.getBool(cKey, true);
+  myShowFPS = p.getBool(cKey, true);
   p.end();
 
-  myMenuName = showFPS ? cMenuNameOff : cMenuNameOn;
+  myMenuName = myShowFPS ? cMenuNameOff : cMenuNameOn;
 }
 
 // ----------------------------------------------------------------------------------------
@@ -34,14 +37,14 @@ void FPSToggle::draw(bool forceRedraw)
 // ----------------------------------------------------------------------------------------
 void FPSToggle::start()
 {
-  showFPS = !showFPS;
+  myShowFPS = !myShowFPS;
 
   // Set FPS configuration
   Preferences p;
   p.begin(cPreferencesNS);
-  p.putBool(cKey, showFPS);
+  p.putBool(cKey, myShowFPS);
   p.end();
 
-  myMenuName = showFPS ? cMenuNameOff : cMenuNameOn;
+  myMenuName = myShowFPS ? cMenuNameOff : cMenuNameOn;
   markRedraw();
 }

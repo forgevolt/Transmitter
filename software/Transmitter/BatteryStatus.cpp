@@ -3,6 +3,9 @@
 
 // ---- BatteryStatus ---------------------------------------------------------------------
 
+namespace
+{
+
 constexpr uint32_t c80_100 = 0x46AB;
 constexpr uint32_t c60_80  = 0x9EC9;
 constexpr uint32_t c40_60  = 0xFEA0; 
@@ -13,6 +16,8 @@ constexpr float cPosX = 20;
 constexpr float cPosY = 17;
 
 constexpr unsigned long cPollIntervalMs = 30000; // the fuel gauge is read this often, not per frame
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 BatteryStatus::BatteryStatus(UserInterface& ui, Adafruit_MAX17048& batteryMonitor)

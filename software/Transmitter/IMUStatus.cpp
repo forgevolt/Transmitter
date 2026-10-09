@@ -4,6 +4,9 @@
 
 // ---- IMUStatus -------------------------------------------------------------------------
 
+namespace
+{
+
 constexpr float cRadius     = 25;    // Radius of the circle 
 constexpr float cSpotR      = 5;     // Radius of the spot indication the current IMU values
 constexpr float cPosX       = cTFTWidth/2; 
@@ -12,6 +15,8 @@ constexpr float cAngleLimit = 45;
 constexpr uint32_t cSpotCol = 0x4CBB;
 
 constexpr unsigned long cTempIntervalMs = 15000;
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 IMUStatus::IMUStatus(UserInterface& ui, MPU6050& imu)

@@ -3,14 +3,17 @@
 
 // ---- Transmitter -----------------------------------------------------------------------
 
+namespace
+{
+
 // A line printed from an ESP-NOW receive callback costs about 15 ms of wire time at 115200
 // baud, and Serial blocks once its TX buffer fills - time the WiFi task spends not processing
 // frames. The sites that can fire on every received frame report no more often than this.
-static constexpr unsigned long cLogIntervalMs = 1000;
+constexpr unsigned long cLogIntervalMs = 1000;
 
 // True at most once per cLogIntervalMs, against the caller's own timestamp. The first call
 // always reports, so a fault is never silent.
-static bool logDue(unsigned long& lastMs)
+bool logDue(unsigned long& lastMs)
 {
   const unsigned long now = millis();
 
@@ -20,6 +23,8 @@ static bool logDue(unsigned long& lastMs)
   lastMs = now;
   return true;
 }
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 Transmitter::Transmitter(EDeviceType device)

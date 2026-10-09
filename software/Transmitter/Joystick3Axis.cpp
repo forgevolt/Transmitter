@@ -5,6 +5,9 @@
 
 // ---- Joystick3Axis ---------------------------------------------------------------------
 
+namespace
+{
+
 // cDeadzone is the distance that needs to be moved before it interacts
 const int cDeadzone = 200;     
 
@@ -15,6 +18,8 @@ const int cDirOffThreshold = 300;
 // Auto repeat related constants
 const unsigned long cAutoRepeatDelay = 1500;
 const unsigned long cRepeatInterval  = 300;
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 Joystick3Axis::Joystick3Axis(int pinX, int pinY, int pinZ)

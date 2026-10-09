@@ -5,6 +5,9 @@
 
 // ---- SoundVolume -----------------------------------------------------------------------
 
+namespace
+{
+
 const String cMenuName = "Sound Volume";
 
 const float cRectWidth = 15;    // H/V slider width
@@ -12,8 +15,10 @@ const float cRectR     = 8;     // H/V rounded rectangle radius
 const float cMaxVolume = 200;   // 200%
 const float cVolumeInc = 10;    // 10% increments
 
-static const char* cPreferencesNS = "Sound";
-static const char* cKey           = "volume";
+constexpr const char* cPreferencesNS = "Sound";
+constexpr const char* cKey           = "volume";
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 SoundVolume::SoundVolume(UserInterface& ui, Menu& menu)

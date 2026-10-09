@@ -7,6 +7,9 @@
 
 // ---- JoystickCalibration ---------------------------------------------------------------
 
+namespace
+{
+
 // Center calibration lasts 6 seconds (3 seconds wait, 3 seconds measurements)
 const unsigned long cCenterWaitDuration  = 3000; // wait time until the center measurements begin
 const unsigned long cCenterTotalDuration = 6000; 
@@ -41,6 +44,8 @@ const int32_t cRightZPosX = cRightYPosX  //        z-axis, pos x
                           - cArcR;
 const int32_t cRightZPosY = cRightXPosY  //                pos y
                           - cArcR;
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 JoystickCalibration::JoystickCalibration(UserInterface& ui, Menu& menu)

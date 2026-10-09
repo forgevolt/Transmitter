@@ -9,10 +9,15 @@
 
 // ---- UserInterface ---------------------------------------------------------------------
 
+namespace
+{
+
 AudioClip startupClip(cSoundStartupWAV);
 
 // Brief delay so draw() can turn the S1 indicator green before the menu paints over the screen.
 constexpr unsigned long cMenuStartDelayMs = 5;
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 UserInterface::UserInterface()

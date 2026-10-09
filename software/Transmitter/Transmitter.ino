@@ -200,16 +200,20 @@ void setup()
     ui.addDisplayObject(new IMUStatus(ui, imu));
   ui.addDisplayObject(new JoystickStatus(ui, true));
   ui.addDisplayObject(new JoystickStatus(ui, false));
-  ui.addDisplayObject(new FPSStatus(ui));
 
+  // FPSStatus reads the FPS toggle, which the menu owns, so the menu and the toggle come first.
+  // ~UserInterface deletes the display objects before the menu, so the reference never dangles.
   Menu* m = new Menu(ui);
+  FPSToggle* fpsToggle = new FPSToggle(ui, *m);
+  ui.addDisplayObject(new FPSStatus(ui, *fpsToggle));
+
   m->add(new WipeAndReset(ui, *m));
   m->add(new JoystickCalibration(ui, *m));
   if (startupStatus.imu == true)
     m->add(new IMUCalibration(ui, *m, imu));
   m->add(new DeviceTypeConfiguration(ui, *m));
   m->add(new SoundVolume(ui, *m));
-  m->add(new FPSToggle(ui, *m));
+  m->add(fpsToggle);
   ui.setMenu(m);
 
   ui.begin();

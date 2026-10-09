@@ -5,11 +5,16 @@
 
 // ---- ResetCalibrationData --------------------------------------------------------------
 
+namespace
+{
+
 const String cMenuName = "Wipe and Reset";
 
 const int32_t cLeftPosX = 120;
 const int32_t cPosY     = 193;
 const int32_t cWidth    = 100;
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 WipeAndReset::WipeAndReset(UserInterface& ui, Menu& menu)

@@ -5,8 +5,13 @@
 
 // ---- IMUCalibration --------------------------------------------------------------------
 
+namespace
+{
+
 const unsigned long cWaitDuration  = 3000; // wait time until the calibration begins
 const String cMenuName = "IMU Calibration";
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 IMUCalibration::IMUCalibration(UserInterface& ui, Menu& menu, MPU6050& imu)

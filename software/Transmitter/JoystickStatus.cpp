@@ -5,6 +5,9 @@
 
 // ---- JoystickStatus --------------------------------------------------------------------
 
+namespace
+{
+
 const float cRectLength = 100;           // H/V slider length
 const float cRectWidth  = 15;            // H/V slider width
 const float cRectR      = 8;             // H/V rounded rectangle radius
@@ -37,6 +40,8 @@ const int32_t cRightZPosX = cRightYPosX  //        z-axis, pos x
                           - cArcR;
 const int32_t cRightZPosY = cRightXPosY  //                pos y
                           - cArcR;
+
+} // namespace
 
 
 

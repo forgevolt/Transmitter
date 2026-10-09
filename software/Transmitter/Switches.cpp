@@ -2,7 +2,12 @@
 
 // ---- Switches --------------------------------------------------------------------------
 
+namespace
+{
+
 constexpr uint16_t cDebounceIntervalMs = 5; // 5 ms
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 Switches::Switches(uint8_t pinS1, uint8_t pinS2, uint8_t pinS3, uint8_t pinS4) 

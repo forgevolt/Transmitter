@@ -6,13 +6,18 @@
 
 // ---- DeviceTypeConfiguration -----------------------------------------------------------
 
-const String cMenuName            = "Device Type Configuration";
-static const char* cPreferencesNS = "Device";
-static const char* cKey           = "oneJoySetup";
+namespace
+{
+
+const String cMenuName               = "Device Type Configuration";
+constexpr const char* cPreferencesNS = "Device";
+constexpr const char* cKey           = "oneJoySetup";
 
 const int32_t cLeftPosX     = 70;
 const int32_t cPosY         = 140;
 const uint32_t cSelectedCol = 0xE0E3;
+
+} // namespace
 
 // ----------------------------------------------------------------------------------------
 DeviceTypeConfiguration::DeviceTypeConfiguration(UserInterface& ui, Menu& menu)
