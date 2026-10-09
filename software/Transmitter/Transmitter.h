@@ -26,7 +26,7 @@ class Transmitter : public ESPNowConnection
     };
 
   public:
-    Transmitter(EDeviceType device);
+    explicit Transmitter(EDeviceType device);
     ~Transmitter() override;
 
     // Returns a copy of the latest telemetry data received from the peer.

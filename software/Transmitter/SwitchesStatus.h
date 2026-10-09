@@ -8,7 +8,7 @@
 class SwitchesStatus : public DisplayObject
 {
   public:
-    SwitchesStatus(UserInterface& ui);
+    explicit SwitchesStatus(UserInterface& ui);
     ~SwitchesStatus() override {}
 
     // From class DisplayObject

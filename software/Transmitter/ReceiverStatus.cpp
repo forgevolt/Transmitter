@@ -49,10 +49,10 @@ void ReceiverStatus::step(unsigned long dt)
   ESPNowConnection::PeerInfo pi;
   bool havePeer = paired && myTransmitter.getPeerInfo(pi);
 
-  if (havePeer == true && myPeerDevice != (EDeviceType)pi.device)
+  if (havePeer == true && myPeerDevice != static_cast<EDeviceType>(pi.device))
   {
     markRedraw();
-    myPeerDevice = (EDeviceType)pi.device;     
+    myPeerDevice = static_cast<EDeviceType>(pi.device);     
   }
 
   // Updated messages from peer (receiver)? Only meaningful while paired, so this is

@@ -15,7 +15,7 @@ class DisplayObject
     };
 
   public:
-    DisplayObject(UserInterface& ui);
+    explicit DisplayObject(UserInterface& ui);
     virtual ~DisplayObject() = 0;
 
     // Update the state of the display object. 'dt' milliseconds have passed since last call

@@ -109,7 +109,7 @@ InputController::State InputController::getState()
 // ----------------------------------------------------------------------------------------
 void InputController::processEvents(void* pvParameters)
 {
-  InputController* c = (InputController*) pvParameters;
+  InputController* c = static_cast<InputController*>(pvParameters);
 
   while (true) 
   {

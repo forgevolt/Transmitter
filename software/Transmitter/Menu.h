@@ -11,7 +11,7 @@ class MenuItem;
 class Menu : public DisplayObject
 {
   public:
-    Menu(UserInterface& ui);
+    explicit Menu(UserInterface& ui);
     ~Menu();
 
     void step(unsigned long dt) override;
