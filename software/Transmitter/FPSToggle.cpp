@@ -20,7 +20,7 @@ FPSToggle::FPSToggle(UserInterface& ui, Menu& menu)
 {
   // Read FPS configuration from preferences
   Preferences p;
-  p.begin(cPreferencesNS);
+  p.begin(cPreferencesNS, true); // read-only: does not create the namespace
   myShowFPS = p.getBool(cKey, true);
   p.end();
 

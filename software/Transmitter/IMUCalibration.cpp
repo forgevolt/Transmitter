@@ -20,7 +20,7 @@ IMUCalibration::IMUCalibration(UserInterface& ui, Menu& menu, MPU6050& imu)
 {
   // Read calibration data from EEPROM or use default values
   Preferences p;
-  p.begin("IMU");
+  p.begin("IMU", true); // read-only: does not create the namespace
     myIMU.setGyroOffsets(p.getFloat("gyroXoffset", 0),
                          p.getFloat("gyroYoffset", 0), 
                          p.getFloat("gyroZoffset", 0));

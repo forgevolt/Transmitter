@@ -65,7 +65,7 @@ void DeviceTypeConfiguration::start()
 {
   // Read device configuration from preferences
   Preferences p;
-  p.begin(cPreferencesNS);
+  p.begin(cPreferencesNS, true); // read-only: does not create the namespace
   myIsOneJoySelected = p.getBool(cKey, true);
   p.end();
 
@@ -107,7 +107,7 @@ bool DeviceTypeConfiguration::getSetup()
 {
   // Read configuration from preferences
   Preferences p;
-  p.begin(cPreferencesNS);
+  p.begin(cPreferencesNS, true); // read-only: does not create the namespace
   bool oneJoySetup = p.getBool(cKey, true);
   p.end();
 

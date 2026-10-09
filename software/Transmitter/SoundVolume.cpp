@@ -26,7 +26,7 @@ SoundVolume::SoundVolume(UserInterface& ui, Menu& menu)
 {
   // Read volume setting from EEPROM or use default values
   Preferences p;
-  p.begin(cPreferencesNS);
+  p.begin(cPreferencesNS, true); // read-only: does not create the namespace
   myUI.sound().setVolume(p.getInt(cKey, 100));   // 100 = original/unmodified volume
   p.end();
 }
