@@ -1,6 +1,7 @@
 #include "UserInterface.h"
 #include "IMUStatus.h"
-#include "Utilities.h"
+#include <VectorUtilities.h>
+using namespace vectorutilities;
 
 // ---- IMUStatus -------------------------------------------------------------------------
 
@@ -49,15 +50,12 @@ void IMUStatus::step(unsigned long dt)
   angleY = constrain(angleY, -cAngleLimit, +cAngleLimit);
   angleZ = constrain(angleZ, -cAngleLimit, +cAngleLimit);
 
-  // Mapping from a square in the interval -1 to 1, for both x and y coordinates to a unit circle 
-  //    y * sqrt(1 - x * x / 2) --> x
-  //    x * sqrt(1 - y * y / 2) --> y
+  // Map the square [-1, 1] x [-1, 1] to the unit disk so that the spot stays inside the circle.
+  // The axes are swapped on purpose: the spot's x follows angleY, its y follows angleX.
+  const Vector2 spot = circularNormalization(angleY / cAngleLimit, angleX / cAngleLimit) * (cRadius-cSpotR-1);
 
-  float x = angleX / cAngleLimit; // convert to interval [-1, 1]
-  float y = angleY / cAngleLimit;
-
-  mySX = y * sqrtf(1 - x * x / 2) * (cRadius-cSpotR-1);
-  mySY = x * sqrtf(1 - y * y / 2) * (cRadius-cSpotR-1);
+  mySX = spot.x;
+  mySY = spot.y;
 
   if (int(oldSX) != int(mySX) || int(oldSY) != int(mySY))
   {

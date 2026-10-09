@@ -1,7 +1,8 @@
 #include <TFT_eSPI.h>
 #include "UserInterface.h"
 #include "JoystickStatus.h"
-#include "Utilities.h"
+#include <VectorUtilities.h>
+using namespace vectorutilities;
 
 // ---- JoystickStatus --------------------------------------------------------------------
 
