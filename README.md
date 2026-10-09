@@ -102,7 +102,7 @@ Versions are the ones this project is built and tested against.
 | MPU6050_light | 1.2.1 | by rfetick - several MPU6050 libraries exist, this is the one used here |
 | Adafruit MAX1704X | 1.0.3 | |
 | Adafruit BusIO | 1.17.4 | dependency of MAX1704X |
-| [ESPNowUtilities](https://github.com/forgevolt/ESPNowUtilities) | 1.0.0 | the ESP-NOW transport `RCProtocol.h` is built on |
+| [ESPNowUtilities](https://github.com/forgevolt/ESPNowUtilities) | 1.0.1 | the ESP-NOW transport `RCProtocol.h` is built on |
 | [SoundEngine](https://github.com/forgevolt/SoundEngine) | 1.1.0 | `SoundEngine.h` and the `sounds/` clips |
 
 ## License
