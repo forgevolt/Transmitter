@@ -20,7 +20,19 @@ class IMUCalibration : public MenuItem
     void start() override;
 
   private:
+    // Countdown before the measurement, the measurement itself (spread over several step()
+    // calls), and the message shown when the result is rejected.
+    enum class EPhase { eCountdown, eMeasuring, eFailed };
+
+    // Sets the measured offsets, then checks them against the readings they produce. Restores the
+    // previous offsets and returns false if those are not the readings of a flat transmitter at rest.
+    bool applyAndCheckOffsets();
+
     MPU6050& myIMU;
-    bool myIsCalibrationWaitPeriodActive = false;
-    unsigned long myCalibrationStartTime = 0;
+    EPhase myPhase = EPhase::eCountdown;
+    unsigned long myPhaseStartTime = 0;
+
+    // Measurement: samples taken so far and their sums (3 x acceleration, 3 x rotation rate).
+    int   mySampleCount = 0;
+    float mySum[6]      = {};
 };
