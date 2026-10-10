@@ -18,6 +18,17 @@ const float cVolumeInc = 10;    // 10% increments
 constexpr const char* cPreferencesNS = "Sound";
 constexpr const char* cKey           = "volume";
 
+// Stores the volume at once, so it is kept however the screen is left - with the button or with
+// SWITCH 1, which closes the menu without telling the item. Unchanged values are not written.
+void storeVolume(int volume)
+{
+  Preferences p;
+  p.begin(cPreferencesNS);
+  if (volume != p.getInt(cKey, 100))
+    p.putInt(cKey, volume);
+  p.end();
+}
+
 } // namespace
 
 // ----------------------------------------------------------------------------------------
@@ -51,7 +62,7 @@ void SoundVolume::draw(bool forceRedraw)
     myUI.tft().drawString(cMenuName, myUI.width()/2, 20, 4);
     myUI.tft().drawFastHLine(0, 60, myUI.width(), TFT_WHITE);
     myUI.tft().drawString("Move joystick left/right to change volume.", myUI.width()/2, 80, 4);
-    myUI.tft().drawString("Press button to store and exit.", myUI.width()/2, 120, 4);
+    myUI.tft().drawString("Press button to exit.", myUI.width()/2, 120, 4);
   }
 
   // ---- Partial redraw
@@ -78,15 +89,6 @@ void SoundVolume::start()
 // ----------------------------------------------------------------------------------------
 void SoundVolume::onClick()
 {
-  int volume = myUI.sound().getVolume();
-  
-  // Make volume setting persistent
-  Preferences p;
-  p.begin(cPreferencesNS);
-  if (volume != p.getInt(cKey, 100))
-    p.putInt(cKey, volume);
-  p.end();
-
   setState(EState::eNotActive);
 }
 
@@ -94,6 +96,7 @@ void SoundVolume::onClick()
 void SoundVolume::onRight()
 {
   myUI.sound().setVolume(myUI.sound().getVolume() + cVolumeInc);
+  storeVolume(myUI.sound().getVolume());
   myUI.beep();
   markPartialRedraw();
 }
@@ -102,6 +105,7 @@ void SoundVolume::onRight()
 void SoundVolume::onLeft()
 {
   myUI.sound().setVolume(myUI.sound().getVolume() - cVolumeInc);
+  storeVolume(myUI.sound().getVolume());
   myUI.beep();
   markPartialRedraw();
 }
