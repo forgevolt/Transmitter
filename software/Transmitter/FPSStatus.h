@@ -19,7 +19,8 @@ class FPSStatus : public DisplayObject
 
   private:
     const FPSToggle& myToggle;
-    int myFPS;
+    int myFPS;               // -1: no complete count yet
     int myFPSCounter;
     int64_t myStime;
+    int64_t myLastStep;      // to notice the pause while the menu is open - see step()
 };
