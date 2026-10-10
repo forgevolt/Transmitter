@@ -76,13 +76,17 @@ void DeviceTypeConfiguration::start()
 // ----------------------------------------------------------------------------------------
 void DeviceTypeConfiguration::onClick()
 {
+  setState(EState::eNotActive);
+
+  // Unchanged: just leave. A restart would drop the link to the receiver for nothing.
+  if (myIsOneJoySelected == getSetup())
+    return;
+
   // Set device configuration
   Preferences p;
   p.begin(cPreferencesNS);
   p.putBool(cKey, myIsOneJoySelected);
   p.end();
-
-  setState(EState::eNotActive);
 
   // Restart ESP to reset the configuration values
   ESP.restart();
