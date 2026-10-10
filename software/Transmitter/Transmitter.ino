@@ -328,9 +328,11 @@ static void sendControls()
     td.switch3 = ui.inputState().s3;
     td.switch4 = ui.inputState().s4;
 
-    // Sensor Orientation: X-axis points right, Y-axis points toward the top of the transmitter.  
-    td.angleX = imu.getAngleY(); 
-    td.angleY = imu.getAngleX();          
+    // Sensor Orientation: X-axis points right, Y-axis points toward the top of the transmitter.
+    // Without an IMU (none answered at startup) the transmitter reports level: the getters would
+    // still return what MPU6050_light::begin() computed from its failed first read.
+    td.angleX = (startupStatus.imu == true) ? imu.getAngleY() : 0.0f;
+    td.angleY = (startupStatus.imu == true) ? imu.getAngleX() : 0.0f;
   }
 
   transmitter->send(td);
