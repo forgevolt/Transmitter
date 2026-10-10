@@ -15,7 +15,7 @@ class DeviceTypeConfiguration : public MenuItem
     // From class DisplayObject
     void draw(bool forceRedraw = false) override;
 
-    // From MenuItem
+    // From class MenuItem
     void start()   override;
     void onClick() override;
     void onRight() override; 

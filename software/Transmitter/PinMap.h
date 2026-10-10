@@ -4,16 +4,16 @@
 // I2S (audio)
 constexpr int cI2S_DOUT = 16;  // I2S Data out pin
 constexpr int cI2S_BCLK = 17;  // Bit clock
-constexpr int cI2S_LRC  = 19;  // Left/Right clock, also known as Frame clock or word select
+constexpr int cI2S_LRC  = 19;  // Left/right clock, also called frame clock or word select
 
-// I2C (display + IMU)
+// I2C (IMU + fuel gauge)
 constexpr int cI2C_SDA = 21;
 constexpr int cI2C_SCL = 22;
 
 // SPI
 constexpr int cSPI_SCK   = 18;
 constexpr int cSPI_MISO  = -1; // Not used
-constexpr int cSPI_MOSI  = 23; // SDA
+constexpr int cSPI_MOSI  = 23; // the display module's SDA pin
 constexpr int cSPI_SS_CS = 5; 
 
 // TFT_eSPI configuration

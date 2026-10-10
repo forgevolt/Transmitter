@@ -50,7 +50,7 @@ bool DisplayObject::createBuffer(int width, int height, const char* site, bool& 
     Serial << "ERROR: " << site << " -> no room for a " << width << "x" << height
            << " sprite (" << (width * height * 2) << " bytes). Free heap "
            << ESP.getFreeHeap() << ", largest block " << ESP.getMaxAllocHeap()
-           << ". This object stops drawing." << endl;
+           << ". Drawing is skipped until an allocation succeeds." << endl;
   }
 
   return false;

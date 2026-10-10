@@ -88,7 +88,7 @@ void DeviceTypeConfiguration::onClick()
   p.putBool(cKey, myIsOneJoySelected);
   p.end();
 
-  // Restart ESP to reset the configuration values
+  // Restart, so that setup() applies the new configuration
   ESP.restart();
 }
 

@@ -3,7 +3,7 @@
 #include "MenuItem.h"
 
 // ---- SoundVolume -----------------------------------------------------------------------
-// Set global sound volume
+// Sets the master sound volume; stored in NVS as it changes
 
 class SoundVolume : public MenuItem
 {

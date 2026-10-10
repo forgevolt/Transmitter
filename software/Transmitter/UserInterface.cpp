@@ -56,7 +56,7 @@ void UserInterface::begin()
   myInputState = myInput.getState();
   if (mySound.begin() == false)
     Serial << "ERROR: " << __PRETTY_FUNCTION__ << " -> sound engine init failed" << endl;    
-  mySound.setVolume(mySound.click(), 200); // Otherwise, the switches will drown out the click sound
+  mySound.setVolume(mySound.click(), 200); // Otherwise the switches' own mechanical click drowns it out
   mySound.setVolume(startupClip, 20);  
   
   mySound.play(startupClip);
@@ -102,7 +102,7 @@ bool UserInterface::isMenuActive()
 // ----------------------------------------------------------------------------------------
 void UserInterface::startMenu()
 {
-  // Check if we do have a menu
+  // Only with a menu
   if (myMenu == nullptr)
     return;
 
@@ -122,7 +122,7 @@ void UserInterface::startMenu()
 // ----------------------------------------------------------------------------------------
 void UserInterface::stopMenu()
 {
-  // Check if we do have a menu
+  // Only with a menu
   if (myMenu == nullptr)
     return;
 
@@ -137,7 +137,7 @@ void UserInterface::stopMenu()
 // ----------------------------------------------------------------------------------------
 void UserInterface::onClick()
 {
-  // Check if we do have a menu
+  // Only with an active menu
   if (myMenu == nullptr || myMenu->isActive() == false)
   {
     return;
@@ -151,7 +151,7 @@ void UserInterface::onClick()
 // ----------------------------------------------------------------------------------------
 void UserInterface::onUp()
 {
-  // Hope we do have a menu and it is active
+  // Only with an active menu
   if (myMenu == nullptr || myMenu->isActive() == false)
     return;
 
@@ -161,7 +161,7 @@ void UserInterface::onUp()
 // ----------------------------------------------------------------------------------------
 void UserInterface::onDown()
 {
-  // Hope we do have a menu and it is active
+  // Only with an active menu
   if (myMenu == nullptr || myMenu->isActive() == false)
     return;
 
@@ -171,7 +171,7 @@ void UserInterface::onDown()
 // ----------------------------------------------------------------------------------------
 void UserInterface::onRight()
 {
-  // Hope we do have a menu and it is active
+  // Only with an active menu
   if (myMenu == nullptr || myMenu->isActive() == false)
     return;
 
@@ -181,7 +181,7 @@ void UserInterface::onRight()
 // ----------------------------------------------------------------------------------------
 void UserInterface::onLeft()
 {
-  // Hope we do have a menu and it is active
+  // Only with an active menu
   if (myMenu == nullptr || myMenu->isActive() == false)
     return;
 

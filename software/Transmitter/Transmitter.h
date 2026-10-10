@@ -14,7 +14,7 @@ class Transmitter : public ESPNowConnection
     // Telemetry data received from a peer.
     //
     // Each buffer is one byte wider than the wire field it mirrors, and every member is
-    // zero-initialised. Copies in write exactly the wire width, so the final byte stays '\0':
+    // zero-initialized. Copies in write exactly the wire width, so the final byte stays '\0':
     // the strings are NUL-terminated by construction, and a full-width label is not truncated.
     struct PeerData
     {
@@ -31,7 +31,7 @@ class Transmitter : public ESPNowConnection
 
     // Returns a copy of the latest telemetry data received from the peer.
     // Access is thread-safe: onAppMsg() is invoked from the ESP-NOW receive
-    // callback (WiFi task context), while this is typically called from loop()
+    // callback (WiFi task context), while this is typically called from loop().
     PeerData getPeerData();
 
   protected:

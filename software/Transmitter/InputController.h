@@ -11,9 +11,8 @@
 
 
 // ---- InputController -------------------------------------------------------------------
-// The InputController class processes events of the buttons and the analog joystick.
-// A dedicated task on cpu core 1 is used to process the events independently of the 
-// main loop() function.
+// Debounces the two joystick buttons and the four switches in a task on CPU core 1. The
+// joysticks are sampled in getState(), from loop().
 
 
 class InputController
@@ -49,7 +48,8 @@ class InputController
     // Initialize and start event processing
     void begin();
 
-    // Returns state of each button and the joystick
+    // Returns a snapshot of every input. It samples the joysticks and consumes the button-press
+    // and switch-change edges, so call it once per frame.
     State getState();
 
     // Direct access to the joystick objects, e.g. for calibration
@@ -75,7 +75,7 @@ class InputController
 
     Switches mySwitches;
 
-    // State of each button as detected in the "processEvents" task 
+    // Button and switch state as seen by the processEvents task
     State myState;
 
     static void processEvents(void* pvParameters);

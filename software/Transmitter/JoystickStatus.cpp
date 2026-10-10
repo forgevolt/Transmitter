@@ -12,17 +12,17 @@ namespace
 const float cRectLength = 100;           // H/V slider length
 const float cRectWidth  = 15;            // H/V slider width
 const float cRectR      = 8;             // H/V rounded rectangle radius
-const float cSpotR      = 5;             // radius of the spot indication the current joystick position
+const float cSpotR      = 5;             // radius of the spot indicating the current joystick position
 const uint32_t cSpotCol = 0x4CBB; 
 const uint32_t cBtnCol  = 0x46AB; 
 const int32_t cArcR     = 28;            // Arc slider outer radius
 const int32_t cArcIR    = 13;            // Arc slider inner radius
 
 const float   cLeftXPosX = 68;           // left, x-axis, pos x
-const float   cLeftXPosY = 167;          //               pos Y
+const float   cLeftXPosY = 167;          //               pos y
 const float   cLeftYPosX = 8;            //       y-axis, pos x
 const float   cLeftYPosY = 7;            //               pos y
-const int32_t cLeftZPosX = cLeftYPosX    //       z-axis, pos X
+const int32_t cLeftZPosX = cLeftYPosX    //       z-axis, pos x
                          + cArcR;
 const int32_t cLeftZPosY = cLeftXPosY    //               pos y
                          - cArcR;
@@ -33,7 +33,7 @@ const float cBufHeight = cLeftXPosY+cRectWidth/2+2;
 const float   cRightXPosX = cBufWidth    // right, x-axis, pos x
                           - cLeftXPosX
                           - cRectLength;     
-const float   cRightXPosY = cLeftXPosY;  //                pos Y
+const float   cRightXPosY = cLeftXPosY;  //                pos y
 const float   cRightYPosX = cBufWidth    //        y-axis, pos x
                           - cLeftYPosX-1;
 const float   cRightYPosY = cLeftYPosY;  //                pos y

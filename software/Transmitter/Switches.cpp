@@ -33,7 +33,8 @@ void Switches::update()
 }
 
 // ----------------------------------------------------------------------------------------
-// Bounce::read() returns the debounced pin level, and a closed switch pulls the pin high.
+// Bounce::read() returns the debounced pin level. The switches connect to GND against the internal
+// pull-up, so a closed contact reads LOW, and HIGH (contact open) counts as on.
 bool Switches::isOnS1() const { return myS1.read(); }
 bool Switches::isOnS2() const { return myS2.read(); }
 bool Switches::isOnS3() const { return myS3.read(); }

@@ -5,7 +5,7 @@
 class FPSToggle;
 
 // ---- FPSStatus -------------------------------------------------------------------------
-// Displays frame per seconds (FPS)
+// Displays the frame rate (frames per second)
 
 class FPSStatus : public DisplayObject
 {

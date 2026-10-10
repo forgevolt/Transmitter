@@ -14,7 +14,7 @@ constexpr uint32_t cBorderColNA = 0x2945;    // border color when not active (e.
 constexpr int32_t cTFTWidth         = 480;
 constexpr int32_t cTFTHeight        = 320;
 
-constexpr int32_t cStatusAreaWidth  = cTFTWidth - 20; // Status area e.g. battery symbol, etc.
+constexpr int32_t cStatusAreaWidth  = cTFTWidth - 20; // Status area: battery, receiver, FPS
 constexpr int32_t cStatusAreaHeight = 40;
 constexpr int32_t cStatusAreaPosX   = 10;
 constexpr int32_t cStatusAreaPosY   = 10;
@@ -68,11 +68,7 @@ class UserInterface
     // The main loop calls step() to compute the next state of the display objects. 
     // The parameter 'dt' denotes the time elapsed since the last call to step(). 
     // A call to draw() renders all display objects. 
-    // The game loop should therefore be implemented as follows:
-    //
-    //   while (true)
-    //       step(dt)
-    //       draw()
+    // loop() calls step(dt) and then draw() once per frame.
     void step(unsigned long dt);
     void draw();
     
@@ -85,10 +81,10 @@ class UserInterface
     InputController& input()  { return myInput;  }
     const InputController::State& inputState() const { return myInputState; }
 
-    // Sound releated methods
+    // Sound-related methods
     SoundEngine& sound() { return mySound;  }
 
-    // Sound methods to be called by MenuObject or DisplayObject instances
+    // Sound methods to be called by MenuItem or DisplayObject instances
     void click();
     void signal();
     void beep();

@@ -22,7 +22,7 @@ class IMUStatus : public DisplayObject
     // "spot" position inside the IMU circle
     float mySX, mySY; 
 
-    // Temperature is read every 15sec rather than on every draw(). The validity flag is kept
+    // Temperature is read every 15 s rather than on every draw(). The validity flag is kept
     // separate from the value because no reading can stand in for "not read yet" - every
     // temperature the sensor can report is a legitimate one, including the negative ones.
     unsigned long myLastTempUpdate;

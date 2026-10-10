@@ -35,7 +35,7 @@ IMUCalibration::IMUCalibration(UserInterface& ui, Menu& menu, MPU6050& imu)
 : MenuItem(ui, menu, cMenuName),
   myIMU(imu)
 {
-  // Read calibration data from EEPROM or use default values
+  // Read the calibration data from NVS, or use the defaults
   Preferences p;
   p.begin("IMU", true); // read-only: does not create the namespace
     myIMU.setGyroOffsets(p.getFloat("gyroXoffset", 0),
@@ -196,7 +196,7 @@ void IMUCalibration::draw(bool forceRedraw)
     myUI.tft().setTextColor(TFT_WHITE);
     myUI.tft().drawString(cMenuName, myUI.width()/2, 20, 4);
     myUI.tft().drawFastHLine(0, 60, myUI.width(), TFT_WHITE);
-    myUI.tft().drawString("Place transmitter on a flat surface!", myUI.width()/2, 80, 4);
+    myUI.tft().drawString("Place the transmitter on a flat surface!", myUI.width()/2, 80, 4);
   }
 
   if (myPhase == EPhase::eCountdown)

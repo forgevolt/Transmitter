@@ -3,7 +3,7 @@
 #include "MenuItem.h"
 
 // ---- FPSToggle -------------------------------------------------------------------------
-// Allows to toggle (on/off) FPS information.
+// Toggles the FPS display on or off. The setting is stored in NVS.
 
 class FPSToggle : public MenuItem
 {
@@ -11,7 +11,7 @@ class FPSToggle : public MenuItem
     FPSToggle(UserInterface& ui, Menu& menu);
     virtual ~FPSToggle() {}
 
-    // From DisplayObject
+    // From class DisplayObject
     void draw(bool forceRedraw = false) override;
 
     // From class MenuItem

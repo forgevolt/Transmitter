@@ -146,7 +146,7 @@ void InputController::processEvents(void* pvParameters)
     xSemaphoreGive(c->myMutex);
 
     // Every pass yields. The task sits just above tskIDLE_PRIORITY, where never blocking starves
-    // the idle task on its core and trips the task watchdog. 2ms is well below the 5ms debounce
+    // the idle task on its core and trips the task watchdog. 2 ms is well below the 5 ms debounce
     // interval the buttons and switches use (see begin()), so responsiveness is unaffected.
     vTaskDelay(2 / portTICK_PERIOD_MS);
   }

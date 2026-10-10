@@ -4,7 +4,7 @@
 #include "MenuItem.h"
 
 // ---- IMUCalibration --------------------------------------------------------------------
-// Calculate gyro offsets
+// Calibrates the gyro and accelerometer offsets and stores them in NVS
 
 class IMUCalibration : public MenuItem
 {
@@ -16,7 +16,7 @@ class IMUCalibration : public MenuItem
     void step(unsigned long dt) override;
     void draw(bool forceRedraw = false) override;
 
-    // From MenuItem
+    // From class MenuItem
     void start() override;
 
   private:

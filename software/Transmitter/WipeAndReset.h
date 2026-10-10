@@ -3,7 +3,7 @@
 #include "MenuItem.h"
 
 // ---- WipeAndReset ----------------------------------------------------------------------
-// Clears all calibration data and other configuration stored in EEPROM.
+// Erases the whole NVS partition - calibration data and every setting - and restarts.
 
 class WipeAndReset : public MenuItem
 {
@@ -14,7 +14,7 @@ class WipeAndReset : public MenuItem
     // From class DisplayObject
     void draw(bool forceRedraw = false) override;
 
-    // From MenuItem
+    // From class MenuItem
     void start()   override;
     void onClick() override;
     void onRight() override; 

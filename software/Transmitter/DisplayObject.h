@@ -18,7 +18,7 @@ class DisplayObject
     explicit DisplayObject(UserInterface& ui);
     virtual ~DisplayObject() = 0;
 
-    // Update the state of the display object. 'dt' milliseconds have passed since last call
+    // Update the state of the display object. 'dt' milliseconds have passed since the last call.
     virtual void step(unsigned long /* dt */) {}
   
     // Draw the object 
@@ -27,12 +27,12 @@ class DisplayObject
     EState getState() const;
     void setState(EState state);
     
-    // Returns true if display object is active and has to be processed in the (game) loop 
+    // Returns true if display object is active and must be processed in loop()
     bool isActive() const;
       
     void drawButton(int x, int y, int length, const String& text, bool isActive);
 
-    // Redraw flags handling
+    // Redraw flag handling
     bool needsRedraw() const        { return myNeedsRedraw; }
     bool needsPartialRedraw() const { return myNeedsPartialRedraw; }
     void markRedraw()               { myNeedsRedraw = true; }

@@ -9,14 +9,14 @@ using namespace vectorutilities;
 namespace
 {
 
-// cDeadzone is the distance that needs to be moved before it interacts
+// How far (in ADC counts) the stick must move from the center before it registers
 const int cDeadzone = 200;     
 
 // Threshold values to trigger up, down, left and right 
 const int cDirOnThreshold = 500;
 const int cDirOffThreshold = 300;
 
-// Auto repeat related constants
+// Auto-repeat related constants
 const unsigned long cAutoRepeatDelay = 1500;
 const unsigned long cRepeatInterval  = 300;
 
@@ -70,7 +70,7 @@ void Joystick3Axis::setCalibrationData(int minX, int maxX, int centerX,
   setAxisCalibration(myMinY, myMaxY, myCenterY, minY, maxY, centerY, "Y");
   setAxisCalibration(myMinZ, myMaxZ, myCenterZ, minZ, maxZ, centerZ, "Z");
 
-  // Store calibration data to EEPROM. The members rather than the parameters, so a rejected
+  // Store the calibration data in NVS. The members rather than the parameters, so a rejected
   // axis persists the defaults it fell back to instead of the data that was turned down.
   Preferences p;
   String ns = "Joystick" + String(myPinX);
@@ -190,7 +190,7 @@ bool Joystick3Axis::updateDirectionState(int value, DirectionState& state)
     return true;
   }
 
-  // State change from active to start auto repeat?
+  // State change from active to start auto-repeat?
   if (state.myIsActive == true && state.myIsRepeatActive == false && millis()-state.myTimeActive > cAutoRepeatDelay)
   {
     state.myIsRepeatActive = true;
@@ -198,7 +198,7 @@ bool Joystick3Axis::updateDirectionState(int value, DirectionState& state)
     return true;
   }
 
-  // Auto repeat already active, trigger another direction "key"?
+  // Auto-repeat already active, trigger another direction "key"?
   if (state.myIsActive == true && state.myIsRepeatActive == true && millis()-state.myTimeRepeatTriggered > cRepeatInterval)
   {
     state.myTimeRepeatTriggered = millis();

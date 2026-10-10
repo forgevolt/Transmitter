@@ -2,9 +2,9 @@
 // Transmitter - controls a receiver (e.g. a hexapod). 
 //               Supports up to two 3-axis joysticks, 4 switches, 2 buttons, and an IMU.
 //               Includes a 480x320 display for a simple menu system and for visualizing  
-//               input devices (e.g., joysticks) and the active receiver.
+//               input devices (e.g. joysticks) and the active receiver.
 //           
-//           Christoph Streit - 2024/2025
+//           Christoph Streit - 2024-2026
 // ---------------------------------------------------------------------------------------------
 
 #include <Streaming.h>
@@ -53,7 +53,7 @@ UserInterface ui;
 
 MPU6050 imu(Wire);
 
-// ---- Transmitter (using ESP NOW)
+// ---- Transmitter (ESP-NOW)
 
 #include "Transmitter.h"
 
@@ -90,7 +90,7 @@ static StartupStatus startupStatus;
 
 //----------------------------------------------------------------------------------------------
 // Lists whatever failed and holds long enough to be read. Called after ui.begin(), so the TFT is
-// initialised; the main screen paints over this on the first pass through loop().
+// initialized; the main screen paints over this on the first pass through loop().
 static void showStartupFailures()
 {
   ui.tft().fillScreen(TFT_BLACK);
@@ -117,7 +117,7 @@ static void showStartupFailures()
     y += 30;
   }
 
-  ui.tft().drawString("Continuing without it", ui.width()/2, y + 20, 2);
+  ui.tft().drawString("Continuing anyway", ui.width()/2, y + 20, 2);
 
   delay(10000);
 }
@@ -132,16 +132,18 @@ void setup()
 
   Serial << "SW version from " << __DATE__ << " " << __TIME__ << endl;
   
-  esp_log_level_set("*", ESP_LOG_VERBOSE); // Set Core Debug Level in Arduine IDE (Tools). Options are None to Verbose
+  // Allow every log level at run time. Which levels are compiled in is chosen with
+  // Tools -> Core Debug Level in the Arduino IDE (None ... Verbose).
+  esp_log_level_set("*", ESP_LOG_VERBOSE);
 
   // The ADC settings are pinned rather than inherited: Joystick3Axis::cADC_MAX assumes 12-bit
-  // conversions, and the joystick travel assumes the ~3.3V span that 11dB attenuation gives.
+  // conversions, and the joystick travel assumes the ~3.3 V span that 11 dB attenuation gives.
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
 
   // Always set the pins explicitly.
-  // 400kHz rather than the 100kHz Wire.begin() substitutes when given no frequency. The MPU-6050
-  // read is 153 bit-times: 1.53ms at 100kHz against 0.38ms here, in a 33ms frame at 30fps.
+  // 400 kHz rather than the 100 kHz Wire.begin() substitutes when given no frequency. The MPU-6050
+  // read is 153 bit-times: 1.53 ms at 100 kHz against 0.38 ms here, in a 33 ms frame at 30 fps.
   Wire.begin(cI2C_SDA, cI2C_SCL, 400000);
   SPI.begin(cSPI_SCK, cSPI_MISO, cSPI_MOSI, cSPI_SS_CS);
   
@@ -154,7 +156,8 @@ void setup()
   startupStatus.fuelGauge = fuelGauge.begin();
   if (startupStatus.fuelGauge == false)
   {
-    Serial << "Couldn't find MAX17048\nMake sure a battery is plugged in!" << endl;
+    Serial << "ERROR: " << __PRETTY_FUNCTION__
+           << " -> MAX17048 did not respond (is a battery plugged in?)" << endl;
   }
 
   // fuelGauge.quickStart();
@@ -255,12 +258,12 @@ static void runFrame()
   // Fast updates (no delays!)
 
   // Skipped when the IMU did not answer at startup: without this the loop drives failing I2C
-  // transactions at 30Hz forever. IMUStatus and IMUCalibration are not created in that case
+  // transactions at 30 Hz forever. IMUStatus and IMUCalibration are not created in that case
   // either, so nothing downstream reads a sensor that is not there.
   if (startupStatus.imu == true)
     imu.update();
 
-  // ---- Update ui objects and render
+  // ---- Update the UI objects and render
 
   Transmitter::PeerData p = transmitter->getPeerData();
 
@@ -280,7 +283,7 @@ static void runFrame()
   if (ui.inputState().joyL == true) btnLeft  = true;
   if (ui.inputState().joyR == true) btnRight = true;
 
-  // Forget button presses if menu is active or no receiver is present
+  // Forget button presses if the menu is active or no receiver is present
   if (ui.isMenuActive() == true || transmitter->isPaired() == false)
   {
     btnLeft = btnRight = false;
@@ -329,7 +332,7 @@ static void sendControls()
     td.switch3 = ui.inputState().s3;
     td.switch4 = ui.inputState().s4;
 
-    // Sensor Orientation: X-axis points right, Y-axis points toward the top of the transmitter.
+    // Sensor orientation: X-axis points right, Y-axis points toward the top of the transmitter.
     // Without an IMU (none answered at startup) the transmitter reports level: the getters would
     // still return what MPU6050_light::begin() computed from its failed first read.
     td.angleX = (startupStatus.imu == true) ? imu.getAngleY() : 0.0f;

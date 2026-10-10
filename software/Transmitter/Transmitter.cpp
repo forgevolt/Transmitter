@@ -55,7 +55,7 @@ Transmitter::PeerData Transmitter::getPeerData()
 
   xSemaphoreTake(myMutex, portMAX_DELAY);
 
-  // No more peer -> reset old values
+  // Peer gone: clear the old values
   if (paired == false && myPeerDataValid == true)
   {
     myPeerDataValid = false;
@@ -108,7 +108,7 @@ void Transmitter::onPairingRequestMsg(const PairingRequestData& pd, const uint8_
   if (isCurrentPeer == false && setPeer(src, pd.device, pd.name) == false)
   {
     // Could not set the peer (e.g. esp_now_add_peer failed)
-    Serial << __PRETTY_FUNCTION__ << " -> Failed to set peer " << mac2string(src) << endl;
+    Serial << __PRETTY_FUNCTION__ << " -> failed to set peer " << mac2string(src) << endl;
     return;
   }
 
@@ -127,11 +127,11 @@ void Transmitter::onAppMsg(uint8_t msgType, const void* data, size_t len, const 
   TelemetryData td;
   if (copyFrameTo(data, len, td) == false)
   {
-    static unsigned long lastInvalidLengMs = 0;
-    if (logDue(lastInvalidLengMs) == true)
+    static unsigned long lastInvalidLenMs = 0;
+    if (logDue(lastInvalidLenMs) == true)
     {
-      Serial << __PRETTY_FUNCTION__ << " -> invalid len for TelemetryData: " << len
-            << ", expecting: " << sizeof(TelemetryData) << endl;
+      Serial << __PRETTY_FUNCTION__ << " -> invalid length for TelemetryData: " << len
+             << ", expected " << sizeof(TelemetryData) << endl;
     }
     return;
   }

@@ -65,7 +65,6 @@ void ReceiverStatus::step(unsigned long dt)
   // skipped entirely (rather than run and discarded) when there's no peer.
   if (havePeer == true)
   {
-    // Updated messages from peer (receiver)?
     Transmitter::PeerData peerData = myTransmitter.getPeerData(); 
 
     bool showMessages = false;
@@ -119,7 +118,7 @@ void ReceiverStatus::draw(bool forceRedraw)
   clearRedrawFlags();
   myChangedLines = 0;
 
-  // Clear before redrawing, i.e. WIFI symbol, device name and icon
+  // Clear before redrawing, i.e. the Wi-Fi symbol, the device name and the icon
   myUI.tft().fillRect(cPosX-25, cStatusAreaPosY, 50, cStatusAreaHeight, cStatusAreaCol);
   myUI.tft().fillRect(myUI.width()/2-80, cStatusAreaPosY, 160, cStatusAreaHeight, cStatusAreaCol);
   myUI.tft().fillRect(cIconRectPosX-1, cIconRectPosY-1, cIconRectWidth+3, cIconRectHeight+3, cMainAreaCol);
@@ -148,7 +147,7 @@ void ReceiverStatus::draw(bool forceRedraw)
         }
         break;
       
-      // Hint: Add an image for each receiver type
+      // Hint: add an image for each receiver type
       // case eAnotherDevice:
       //   break;
 

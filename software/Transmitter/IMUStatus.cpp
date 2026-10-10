@@ -9,7 +9,7 @@ namespace
 {
 
 constexpr float cRadius     = 25;    // Radius of the circle 
-constexpr float cSpotR      = 5;     // Radius of the spot indication the current IMU values
+constexpr float cSpotR      = 5;     // Radius of the spot indicating the current IMU values
 constexpr float cPosX       = cTFTWidth/2; 
 constexpr float cPosY       = 283;
 constexpr float cAngleLimit = 45;
@@ -40,7 +40,7 @@ void IMUStatus::step(unsigned long dt)
   float oldSY = mySY;
 
   // Note: IMU getters return cached values rather than triggering a direct hardware read.
-  // Sensor Orientation: X-axis points right, Y-axis points toward the top of the transmitter.  
+  // Sensor orientation: X-axis points right, Y-axis points toward the top of the transmitter.  
   float angleX = myIMU.getAngleX();
   float angleY = myIMU.getAngleY();
   float angleZ = myIMU.getAngleZ();
@@ -85,7 +85,7 @@ void IMUStatus::draw(bool forceRedraw)
   // or two from the chip's own heat), not the room.
   myUI.tft().setTextDatum(TR_DATUM);
   myUI.tft().setTextColor(cBorderCol, cStatusAreaCol);
-  myUI.tft().setTextPadding(myUI.tft().textWidth("000", 2)); // Padding will blank area not covered by the string
+  myUI.tft().setTextPadding(myUI.tft().textWidth("000", 2)); // The padding will blank any area not covered by the string.
   myUI.tft().drawFloat(myTemp, 0, 95, 22, 2);
   myUI.tft().setTextPadding(0);
   myUI.tft().drawString("o", 101, 21, 1);
@@ -102,14 +102,14 @@ void IMUStatus::draw(bool forceRedraw)
   // Clear before redrawing
   myBuf.fillCircle(cRadius, cRadius, cRadius, cMainAreaCol);
 
-  /* ---- Sensor fusion with an 6-axis IMU (MPU6050) for angle Z (yaw) is not good enough and drifts over time, 
-          9-axis IMU is required -> disable
+  /* ---- Yaw (angle Z) from a 6-axis IMU (MPU-6050) drifts over time; showing it would need a
+          9-axis IMU, so it is disabled.
   myUI.tft().drawSpot(sinf(angleZ*deg2rad)*(cRadius+cSpotR+2) + cPosX, 
                          cPosY-cosf(angleZ*deg2rad)*(cRadius+cSpotR+2), 
                          cSpotR, cSpotCol);
   */
 
-  // Sensor Orientation: X-axis points right, Y-axis points toward the top of the transmitter.  
+  // Sensor orientation: X-axis points right, Y-axis points toward the top of the transmitter.  
   myBuf.drawSpot(mySX+cRadius, mySY+cRadius, cSpotR, cSpotCol);
 
   myBuf.drawSmoothCircle(cRadius, cRadius, cRadius, cBorderCol, TFT_BLACK);

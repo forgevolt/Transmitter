@@ -11,25 +11,25 @@ using namespace vectorutilities;
 namespace
 {
 
-// Center calibration lasts 6 seconds (3 seconds wait, 3 seconds measurements)
+// Center calibration lasts 6 s (3 s waiting, 3 s measuring)
 const unsigned long cCenterWaitDuration  = 3000; // wait time until the center measurements begin
 const unsigned long cCenterTotalDuration = 6000; 
 
-// Total of 10 seconds to move all axis (max 6) to min/max positions
+// Total of 10 seconds to move all axes (up to six) to min/max positions
 const unsigned long cMinMaxDuration = 10000;
 
 const float cRectLength = 100;           // H/V slider length
 const float cRectWidth  = 15;            // H/V slider width
 const float cRectR      = 8;             // H/V rounded rectangle radius
-const float cSpotR      = 5;             // radius of the spot indication the current joystick position
+const float cSpotR      = 5;             // radius of the spot indicating the current joystick position
 const int32_t cArcR     = 28;            // Arc slider outer radius
 const int32_t cArcIR    = 13;            // Arc slider inner radius
 
 const float   cLeftXPosX = 87;           // left, x-axis, pos x
-const float   cLeftXPosY = 300;          //               pos Y
+const float   cLeftXPosY = 300;          //               pos y
 const float   cLeftYPosX = 27;           //       y-axis, pos x
 const float   cLeftYPosY = 140;          //               pos y
-const int32_t cLeftZPosX = cLeftYPosX    //       z-axis, pos X
+const int32_t cLeftZPosX = cLeftYPosX    //       z-axis, pos x
                          + cArcR;
 const int32_t cLeftZPosY = cLeftXPosY    //               pos y
                          - cArcR;
@@ -37,7 +37,7 @@ const int32_t cLeftZPosY = cLeftXPosY    //               pos y
 const float   cRightXPosX = cTFTWidth    // right, x-axis, pos x
                           - cLeftXPosX
                           - cRectLength;     
-const float   cRightXPosY = cLeftXPosY;  //                pos Y
+const float   cRightXPosY = cLeftXPosY;  //                pos y
 const float   cRightYPosX = cTFTWidth    //        y-axis, pos x
                           - cLeftYPosX;
 const float   cRightYPosY = cLeftYPosY;  //                pos y
@@ -120,7 +120,7 @@ void JoystickCalibration::startMinMax()
   {
     myPhase = EPhase::eIdle;
     setState(EState::eNotActive);
-    Serial << __PRETTY_FUNCTION__  << " myCount == 0 " << endl;
+    Serial << __PRETTY_FUNCTION__  << " -> myCount == 0" << endl;
     return;
   }
 
@@ -245,7 +245,7 @@ void JoystickCalibration::drawCenterScreen(bool forceRedraw)
     if (needsPartialRedraw() == true)
       myUI.tft().fillRect(0, 80, myUI.width(), 120, TFT_BLACK);
 
-    myUI.tft().drawString("Don't move the Joysticks!", myUI.width()/2, 80, 4);
+    myUI.tft().drawString("Don't move the joysticks!", myUI.width()/2, 80, 4);
   }
 
   // ----- Progress bar
@@ -264,8 +264,8 @@ void JoystickCalibration::drawMinMaxScreen(bool forceRedraw)
     myUI.tft().setTextColor(TFT_WHITE);
     myUI.tft().drawString("Min/Max Calibration", myUI.width()/2, 20, 4);
     myUI.tft().drawFastHLine(0, 60, myUI.width(), TFT_WHITE);
-    myUI.tft().drawString("Move joysticks on all axes to", myUI.width()/2, 80, 4);
-    myUI.tft().drawString("min/max positions.", myUI.width()/2, 110, 4);
+    myUI.tft().drawString("Move the joysticks on all axes to", myUI.width()/2, 80, 4);
+    myUI.tft().drawString("their min/max positions.", myUI.width()/2, 110, 4);
     myUI.tft().drawString("Press button to exit.", myUI.width()/2, 200, 4);
   }
 

@@ -97,7 +97,7 @@ void Menu::add(MenuItem* adoptMenuItem)
 // ----------------------------------------------------------------------------------------
 void Menu::start()
 {
-  // y Position of the Menu
+  // y position of the first menu item
   int16_t y = 40;
   for (auto item : myMenuItems)
   {

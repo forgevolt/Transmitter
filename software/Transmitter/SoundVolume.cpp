@@ -10,8 +10,8 @@ namespace
 
 const String cMenuName = "Sound Volume";
 
-const float cRectWidth = 15;    // H/V slider width
-const float cRectR     = 8;     // H/V rounded rectangle radius
+const float cRectWidth = 15;    // Volume bar width
+const float cRectR     = 8;     // Volume bar corner radius
 const float cMaxVolume = 200;   // 200%
 const float cVolumeInc = 10;    // 10% increments
 
@@ -35,7 +35,7 @@ void storeVolume(int volume)
 SoundVolume::SoundVolume(UserInterface& ui, Menu& menu)
 : MenuItem(ui, menu, cMenuName)
 {
-  // Read volume setting from EEPROM or use default values
+  // Read the volume from NVS, or use the default
   Preferences p;
   p.begin(cPreferencesNS, true); // read-only: does not create the namespace
   myUI.sound().setVolume(p.getInt(cKey, 100));   // 100 = original/unmodified volume

@@ -3,7 +3,7 @@
 #include "WipeAndReset.h"
 
 
-// ---- ResetCalibrationData --------------------------------------------------------------
+// ---- WipeAndReset ----------------------------------------------------------------------
 
 namespace
 {
@@ -42,7 +42,7 @@ void WipeAndReset::draw(bool forceRedraw)
     myUI.tft().drawFastHLine(0, 60, myUI.width(), TFT_WHITE);
     myUI.tft().drawString("Do you really want to reset to", myUI.width()/2, 80, 4);
     myUI.tft().drawString("default settings?", myUI.width()/2, 110, 4);
-    myUI.tft().drawString("This will erase all calibration data.", myUI.width()/2, 140, 4);
+    myUI.tft().drawString("This erases calibration and settings.", myUI.width()/2, 140, 4);
     myUI.tft().setTextDatum(MC_DATUM);
   }
 
@@ -71,7 +71,7 @@ void WipeAndReset::onClick()
     nvs_flash_erase(); // erase the NVS partition and...
     nvs_flash_init();  // initialize the NVS partition.
 
-    // Restart ESP to reset the configuration values
+    // Restart, so that every setting returns to its default
     ESP.restart();
   }
 

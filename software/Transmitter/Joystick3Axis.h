@@ -11,7 +11,7 @@ class Joystick3Axis
   public: 
     // Min/max *raw* return values of getRawX/Y/Z methods
     static constexpr int cADC_MIN = 0;
-    static constexpr int cADC_MAX = 4095; // ESP32, 12 bit
+    static constexpr int cADC_MAX = 4095; // ESP32, 12-bit
     
     // Min/max return values of the getX/Y/Z methods
     static constexpr int cMIN = -1000;
@@ -28,7 +28,7 @@ class Joystick3Axis
     // Initialize and start processing
     void begin();
 
-    // Calibration informaton that is taken into account when computing the current value 
+    // Calibration information that is taken into account when computing the current value 
     // of an axis (getter methods).
     void setCalibrationData(int minX, int maxX, int centerX,
                             int minY, int maxY, int centerY,
@@ -39,13 +39,13 @@ class Joystick3Axis
     // renderer and the transmit path the same numbers.
     void update();
 
-    // The value from the last update(). Range is [-1000, 1000], 0 at centre - also what an
+    // The value from the last update(). Range is [-1000, 1000], 0 at center - also what an
     // inactive joystick reports.
     int getX() const { return myValueX; }
     int getY() const { return myValueY; }
     int getZ() const { return myValueZ; }
  
-    // Get the raw values i.e. for calibration purposes. An inactive joystick reads 0 without
+    // Raw values, e.g. for calibration. An inactive joystick reads 0 without
     // touching the ADC.
     uint16_t getRawX() { return readRaw(myPinX); }
     uint16_t getRawY() { return readRaw(myPinY); }

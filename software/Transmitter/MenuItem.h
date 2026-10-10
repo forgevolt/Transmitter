@@ -13,7 +13,7 @@ class MenuItem : public DisplayObject
     MenuItem(UserInterface& ui, Menu& menu, const String& name);
     virtual ~MenuItem() {}
 
-    // From DisplayObject
+    // From class DisplayObject
     void step(unsigned long /* dt */) override {}
     void draw(bool forceRedraw = false) override;
 
@@ -33,7 +33,7 @@ class MenuItem : public DisplayObject
     const String& getName() const { return myMenuName; }
 
   protected:
-    Menu& myMenu; // Reference to the menu e.g. to call stop() in order to exit
+    Menu& myMenu; // Reference to the owning menu (not used by the current items)
     String myMenuName;
     int16_t myPosY = 0;
     bool myIsSelected = false;
