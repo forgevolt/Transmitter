@@ -193,7 +193,8 @@ void setup()
 
   // ---- Display and menu objects
 
-  ui.addDisplayObject(new BatteryStatus(ui, fuelGauge));
+  if (startupStatus.fuelGauge == true)
+    ui.addDisplayObject(new BatteryStatus(ui, fuelGauge));
   ui.addDisplayObject(new ReceiverStatus(ui, *transmitter));
   ui.addDisplayObject(new SwitchesStatus(ui));
   if (startupStatus.imu == true)

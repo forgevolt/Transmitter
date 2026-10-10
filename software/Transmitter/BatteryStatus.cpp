@@ -15,7 +15,15 @@ constexpr uint32_t c00_20  = 0xC000;
 constexpr float cPosX = 20;
 constexpr float cPosY = 17;
 
-constexpr unsigned long cPollIntervalMs = 30000; // the fuel gauge is read this often, not per frame
+constexpr unsigned long cPollIntervalMs  = 30000; // the fuel gauge is read this often, not per frame
+constexpr unsigned long cRetryIntervalMs = 5000;  // while there is no valid reading
+
+// Low battery: below cLowPercent the icon blinks and the signal tone plays, repeated every
+// cWarnRepeatMs. The hysteresis stops a charge hovering at the threshold from toggling.
+constexpr float         cLowPercent    = 10.0f;
+constexpr float         cLowHysteresis = 2.0f;
+constexpr unsigned long cWarnRepeatMs  = 60000;
+constexpr unsigned long cBlinkMs       = 500;
 
 } // namespace
 
@@ -23,7 +31,7 @@ constexpr unsigned long cPollIntervalMs = 30000; // the fuel gauge is read this 
 BatteryStatus::BatteryStatus(UserInterface& ui, Adafruit_MAX17048& batteryMonitor)
 : DisplayObject(ui),
   myFuelGauge(batteryMonitor),
-  myLastUpdate(millis()),
+  myLastUpdate(millis() - cPollIntervalMs), // so the first step() reads at once (unsigned, wrap-safe)
   myCellPercent(-1)
 {}
 
@@ -33,13 +41,46 @@ void BatteryStatus::step(unsigned long dt)
   if (isActive() == false)
     return;
       
-  // Update every 30sec
-  if (millis() - myLastUpdate > cPollIntervalMs || myCellPercent < 0)
+  // ---- Read the gauge
+  // cellPercent() returns NAN when the gauge does not answer. A failed read clears the value:
+  // only the outline is drawn, and the gauge is retried every cRetryIntervalMs until it answers
+  // again. NAN itself must not reach draw() - it fails every comparison and would show as an
+  // empty battery.
+  const unsigned long interval = (myCellPercent < 0) ? cRetryIntervalMs : cPollIntervalMs;
+  if (millis() - myLastUpdate > interval)
   { 
     myLastUpdate = millis();
-    myCellPercent = myFuelGauge.cellPercent();
+
+    const float percent = myFuelGauge.cellPercent();
+    myCellPercent = (isnan(percent) == true) ? -1.0f : percent;
     markRedraw();
-  }  
+  }
+
+  // ---- Low battery
+  if (myCellPercent >= 0 && myCellPercent < cLowPercent)
+  {
+    myIsLow = true;
+  }
+  else if (myCellPercent < 0 || myCellPercent > cLowPercent + cLowHysteresis)
+  {
+    // Charged again, or no reading: no warning.
+    myIsLow = false;
+    myLowWarnedAt = 0; // a later drop warns at once
+  }
+
+  const unsigned long now = millis();
+  const bool blinkOn = (myIsLow == false) || ((now / cBlinkMs) % 2 == 0);
+  if (blinkOn != myBlinkOn)
+  {
+    myBlinkOn = blinkOn;
+    markRedraw();
+  }
+
+  if (myIsLow == true && (myLowWarnedAt == 0 || now - myLowWarnedAt >= cWarnRepeatMs))
+  {
+    myLowWarnedAt = now;
+    myUI.signal();
+  }
 }
 
 // ----------------------------------------------------------------------------------------
@@ -85,6 +126,10 @@ void BatteryStatus::draw(bool forceRedraw)
   // Shape of the battery
   myUI.tft().fillSmoothRoundRect(cPosX+46, cPosY+7, 5, 12, 2, cBorderCol, TFT_BLACK);
   myUI.tft().drawSmoothRoundRect(cPosX, cPosY, 4, 3, 46, 25, cBorderCol, TFT_BLACK);
+
+  // No valid reading yet: outline only. Low battery: the segment blinks.
+  if (myCellPercent < 0 || myBlinkOn == false)
+    return;
 
   // Visualize charge percentage
   myUI.tft().fillRect(cPosX+4, cPosY+4, numSeg*8-1, 18, col);

@@ -20,7 +20,12 @@ class BatteryStatus : public DisplayObject
     // Reference to the MAX17048 I2C battery monitor
     Adafruit_MAX17048& myFuelGauge;
 
-    // Access the gauge every 30sec
+    // The gauge is read every 30 s - see step(). myCellPercent is -1 while there is no valid reading.
     unsigned long myLastUpdate;
     float myCellPercent;
+
+    // Low battery: whether the warning is on, when the tone last played, and the blink phase.
+    bool myIsLow = false;
+    unsigned long myLowWarnedAt = 0;
+    bool myBlinkOn = true;
 };
