@@ -24,6 +24,12 @@ const int32_t cIconRectPosY   = cMainAreaPosY+55;
 const int32_t cIconRectHeight = 120;
 const int32_t cIconRectWidth  = cTFTWidth-2*cIconRectPosX;
 
+// Message lines: label left-aligned at cMsgLeftX, value right-aligned at cMsgRightX, font 2.
+const int32_t cMsgLeftX  = cIconRectPosX+cIconRectWidth-130;
+const int32_t cMsgRightX = cIconRectPosX+cIconRectWidth-10;
+
+static_assert(cNumMessages <= 32, "myChangedLines has one bit per message line");
+
 } // namespace
 
 // ----------------------------------------------------------------------------------------
@@ -62,19 +68,28 @@ void ReceiverStatus::step(unsigned long dt)
     // Updated messages from peer (receiver)?
     Transmitter::PeerData peerData = myTransmitter.getPeerData(); 
 
-    myShowMessages = false;
+    bool showMessages = false;
     for (int i=0; i<int(cNumMessages); i++)
     {
       if (strncmp(myPeerData.msgLabels[i], peerData.msgLabels[i], cLabelLen) != 0 ||
           strncmp(myPeerData.msgInfo[i],   peerData.msgInfo[i],   cLabelLen) != 0)
       {
-        markRedraw();
+        myChangedLines |= (1u << i);
       }
 
       if (strlen(peerData.msgLabels[i]) > 0)
-        myShowMessages = true;
+        showMessages = true;
     }
 
+    // Messages appearing or disappearing move the image: redraw the panel. A changed text only
+    // needs its line redrawn - values such as the robot's height change several times a second,
+    // and redrawing the whole panel each time would flicker.
+    if (showMessages != myShowMessages)
+      markRedraw();
+    else if (myChangedLines != 0)
+      markPartialRedraw();
+
+    myShowMessages = showMessages;
     myPeerData = peerData;
   }  
 }
@@ -82,10 +97,27 @@ void ReceiverStatus::step(unsigned long dt)
 // ----------------------------------------------------------------------------------------
 void ReceiverStatus::draw(bool forceRedraw)
 {
-  if (isActive() == false || (forceRedraw == false && needsRedraw() == false))
+  if (isActive() == false)
     return;
 
+  if (forceRedraw == false && needsRedraw() == false && needsPartialRedraw() == false)
+    return;
+
+  // ---- Partial redraw: only the message lines changed
+  if (forceRedraw == false && needsRedraw() == false)
+  {
+    clearRedrawFlags();
+
+    if (myLastPaired == true && myShowMessages == true)
+      drawMessages(true);
+
+    myChangedLines = 0;
+    return;
+  }
+
+  // ---- Full redraw
   clearRedrawFlags();
+  myChangedLines = 0;
 
   // Clear before redrawing, i.e. WIFI symbol, device name and icon
   myUI.tft().fillRect(cPosX-25, cStatusAreaPosY, 50, cStatusAreaHeight, cStatusAreaCol);
@@ -131,21 +163,35 @@ void ReceiverStatus::draw(bool forceRedraw)
 
     // Draw messages from peer (receiver)?
     if (myShowMessages == true)
-    {
-      myUI.tft().setTextColor(cBorderCol, TFT_BLACK);
-      myUI.tft().setTextPadding(0);
-      for (int i=0; i<int(cNumMessages); i++)
-      {
-        myUI.tft().setTextDatum(TL_DATUM);
-        myUI.tft().drawString(myPeerData.msgLabels[i], cIconRectPosX+cIconRectWidth-130, cIconRectPosY + i*20 + 20, 2);
-        myUI.tft().setTextDatum(TR_DATUM);
-        myUI.tft().drawString(myPeerData.msgInfo[i], cIconRectPosX+cIconRectWidth-10, cIconRectPosY + i*20 + 20, 2);
-      }
-    }
+      drawMessages(false);
   }
   else
   {
     myUI.tft().drawSpot(cPosX, cPosY, 3, cNotPairedCol, cNotPairedCol);
     myUI.tft().drawWedgeLine(cPosX, cPosY-8, cPosX, cPosY-23, 3, 4, cNotPairedCol, TFT_BLACK);
+  }
+}
+
+// ----------------------------------------------------------------------------------------
+void ReceiverStatus::drawMessages(bool changedOnly)
+{
+  myUI.tft().setTextColor(cBorderCol, TFT_BLACK);
+  myUI.tft().setTextPadding(0);
+
+  for (int i=0; i<int(cNumMessages); i++)
+  {
+    if (changedOnly == true && (myChangedLines & (1u << i)) == 0)
+      continue;
+
+    const int32_t y = cIconRectPosY + i*20 + 20;
+
+    // Clear the line first: label and value share it from both ends, so text padding on one
+    // would erase the other.
+    myUI.tft().fillRect(cMsgLeftX, y, cMsgRightX-cMsgLeftX, myUI.tft().fontHeight(2), TFT_BLACK);
+
+    myUI.tft().setTextDatum(TL_DATUM);
+    myUI.tft().drawString(myPeerData.msgLabels[i], cMsgLeftX, y, 2);
+    myUI.tft().setTextDatum(TR_DATUM);
+    myUI.tft().drawString(myPeerData.msgInfo[i], cMsgRightX, y, 2);
   }
 }

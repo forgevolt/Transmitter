@@ -17,6 +17,10 @@ class ReceiverStatus : public DisplayObject
     void draw(bool forceRedraw = false) override;
 
   private:
+    // Draws the message lines next to the receiver's image: all of them, or only those whose bit
+    // is set in myChangedLines.
+    void drawMessages(bool changedOnly);
+
     // Reference to the transmitter
     Transmitter& myTransmitter;
 
@@ -32,4 +36,5 @@ class ReceiverStatus : public DisplayObject
     // Name and messages from peer (receiver)
     Transmitter::PeerData myPeerData;
     bool myShowMessages = false;
+    uint32_t myChangedLines = 0; // bit i: message line i changed since it was last drawn
 };
