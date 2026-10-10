@@ -59,16 +59,16 @@ MPU6050 imu(Wire);
 
 Transmitter* transmitter = nullptr;
 
-// How often a TransmitterData frame goes out. ESPNowUtilities drops a peer after cPeerTimeoutMs
-// (1000ms) of silence *from that peer* (ESPNowConnection::removeLostPeer), so this interval is what
-// keeps the robot's view of this transmitter alive. What keeps our view of the robot alive is the
-// robot's own telemetry cadence, not this value.
+// loop() runs two jobs, each on its own schedule, and sleeps until the next one is due:
+//
+// - Screen: input, step() and draw(), at most "targetFPS" times a second.
+// - Send: one TransmitterData frame every cSendIntervalMs (20 Hz). These frames also keep the link
+//   alive: the receiver drops this transmitter after cPeerTimeoutMs (1000 ms) without one.
+//
+// Changing one rate does not change the other.
+constexpr unsigned long targetFPS       = 30;
+constexpr unsigned long frameTimeMs     = 1000 / targetFPS;
 constexpr unsigned long cSendIntervalMs = 50;
-
-// Animation steps: a maximum of "targetFPS" is rendered. frameTimeMs is the budget one frame is
-// given - loop() sleeps out whatever is left of it.
-constexpr unsigned long targetFPS   = 30;
-constexpr unsigned long frameTimeMs = 1000 / targetFPS;
 
 // ---- Misc
 
@@ -230,15 +230,17 @@ void setup()
          << ESP.getMaxAllocHeap() << " largest block" << endl;
 }
 
+// A joystick button press is latched until a frame has carried it to the receiver. Pressed and
+// read during a screen pass, sent during a later send pass.
+static bool btnLeft  = false;
+static bool btnRight = false;
+
 //----------------------------------------------------------------------------------------------
-void loop()
+// Screen pass: IMU, input, step() and draw().
+static void runFrame()
 {
-  // Values that must outlive one frame. previousFrameStart is what makes dt a measurement, and
-  // btnLeft/btnRight latch a press until it is sent - as plain locals they would be cleared every
-  // frame and every press would be lost.
+  // previousFrameStart is what makes dt a measurement.
   static int64_t previousFrameStart = esp_timer_get_time() - frameTimeMs * 1000;
-  static bool btnLeft  = false;
-  static bool btnRight = false;
 
   const int64_t t0 = esp_timer_get_time();
 
@@ -282,74 +284,98 @@ void loop()
   {
     btnLeft = btnRight = false;
   }
+}
 
-  // ---- Handle receiver(s)
+//----------------------------------------------------------------------------------------------
+// Send pass: one TransmitterData frame from the input of the latest screen pass.
+static void sendControls()
+{
+  static TransmitterData td;
+
+  if (ui.isMenuActive())
+  {
+    // Menu open: keep the link alive, but command nothing. Going silent instead would be
+    // indistinguishable from a dead transmitter at the receiving end.
+    td.joyLX = td.joyLY = td.joyLZ = 0;
+    td.joyRX = td.joyRY = td.joyRZ = 0;
+
+    td.joyLBtn = td.joyRBtn = false;
+    btnLeft = btnRight = false;
+
+    td.switch1 = ui.inputState().s1;
+    td.switch2 = ui.inputState().s2;
+    td.switch3 = ui.inputState().s3;
+    td.switch4 = ui.inputState().s4;
+
+    td.angleX = td.angleY = 0.0f; 
+  }
+  else
+  {
+    td.joyLX = ui.inputState().LX;
+    td.joyLY = ui.inputState().LY;
+    td.joyLZ = ui.inputState().LZ;
+    
+    td.joyRX = ui.inputState().RX;
+    td.joyRY = ui.inputState().RY;
+    td.joyRZ = ui.inputState().RZ;
+
+    td.joyLBtn = btnLeft;
+    td.joyRBtn = btnRight;
+    btnLeft = btnRight = false;
+
+    td.switch1 = ui.inputState().s1;
+    td.switch2 = ui.inputState().s2;
+    td.switch3 = ui.inputState().s3;
+    td.switch4 = ui.inputState().s4;
+
+    // Sensor Orientation: X-axis points right, Y-axis points toward the top of the transmitter.  
+    td.angleX = imu.getAngleY(); 
+    td.angleY = imu.getAngleX();          
+  }
+
+  transmitter->send(td);
+}
+
+//----------------------------------------------------------------------------------------------
+void loop()
+{
+  // When each job is next due (esp_timer time, us).
+  static int64_t nextFrameUs = 0;
+  static int64_t nextSendUs  = 0;
+
+  // ---- Screen
+  // A frame that overruns is not caught up: the next one is due a full frame after this one began.
+  int64_t now = esp_timer_get_time();
+  if (now >= nextFrameUs)
+  {
+    nextFrameUs = now + frameTimeMs * 1000;
+    runFrame();
+  }
+
+  // ---- Link to the receiver
 
   // Remove the receiver if it has not sent a heartbeat for a while => communication is lost
   transmitter->removeLostPeer();
 
-  // ---- Send data to receivers
-
-  if (transmitter->isPaired() == true)
+  // ---- Send data to the receiver
+  // The schedule advances by the interval rather than restarting at "now", so the rate holds
+  // whatever the frame time. After a longer pause (not paired, a long frame) it resynchronizes
+  // instead of catching up with a burst.
+  const bool paired = transmitter->isPaired();
+  now = esp_timer_get_time();
+  if (paired == true && now >= nextSendUs)
   {
-    // Send message every 50ms
-    static unsigned long lastMsgUpdate = 0;
-    static TransmitterData td;
+    sendControls();
 
-    if (millis() - lastMsgUpdate > cSendIntervalMs)
-    {
-      lastMsgUpdate = millis();
-
-      if (ui.isMenuActive())
-      {
-        // Menu open: keep the link alive, but command nothing. Going silent instead would be
-        // indistinguishable from a dead transmitter at the receiving end.
-        td.joyLX = td.joyLY = td.joyLZ = 0;
-        td.joyRX = td.joyRY = td.joyRZ = 0;
-
-        td.joyLBtn = td.joyRBtn = false;
-        btnLeft = btnRight = false;
-
-        td.switch1 = ui.inputState().s1;
-        td.switch2 = ui.inputState().s2;
-        td.switch3 = ui.inputState().s3;
-        td.switch4 = ui.inputState().s4;
-  
-        td.angleX = td.angleY = 0.0f; 
-      }
-      else
-      {
-        td.joyLX = ui.inputState().LX;
-        td.joyLY = ui.inputState().LY;
-        td.joyLZ = ui.inputState().LZ;
-        
-        td.joyRX = ui.inputState().RX;
-        td.joyRY = ui.inputState().RY;
-        td.joyRZ = ui.inputState().RZ;
-
-        td.joyLBtn = btnLeft;
-        td.joyRBtn = btnRight;
-        btnLeft = btnRight = false;
-
-        td.switch1 = ui.inputState().s1;
-        td.switch2 = ui.inputState().s2;
-        td.switch3 = ui.inputState().s3;
-        td.switch4 = ui.inputState().s4;
-  
-        // Sensor Orientation: X-axis points right, Y-axis points toward the top of the transmitter.  
-        td.angleX = imu.getAngleY(); 
-        td.angleY = imu.getAngleX();          
-      }
-
-      transmitter->send(td);
-    }
+    nextSendUs += cSendIntervalMs * 1000;
+    if (now >= nextSendUs)
+      nextSendUs = now + cSendIntervalMs * 1000;
   }
 
-  // If input processing, message transmission to receiver, computation, and rendering 
-  // complete faster than the target frame time (max frames per second), wait the remaining time.    
-  const int64_t t1      = esp_timer_get_time();  // us
-  const int     delayMS = (frameTimeMs - (t1 - t0) / 1000);
-  if (delayMS > 0)
-    vTaskDelay(delayMS / portTICK_PERIOD_MS);
+  // ---- Sleep until the next job is due (unpaired, only the screen is due)
+  // Rounded up to whole milliseconds; a wake-up that comes slightly early just sleeps again.
+  const int64_t wakeUs  = (paired == true) ? min(nextFrameUs, nextSendUs) : nextFrameUs;
+  const int64_t sleepUs = wakeUs - esp_timer_get_time();
+  if (sleepUs > 0)
+    vTaskDelay(pdMS_TO_TICKS(static_cast<uint32_t>((sleepUs + 999) / 1000)));
 }
-
