@@ -31,7 +31,7 @@ misreading values.
 **Shows** battery charge, the paired robot's name and icon, live joystick positions, switch
 states with their labels, IMU tilt, temperature, and an optional frame counter.
 
-**Offers a menu** for joystick calibration (centre and end stops per axis, stored in flash), IMU
+**Offers a menu** for joystick calibration (center and end stops per axis, stored in flash), IMU
 calibration, one- or two-joystick selection, sound volume, frame-rate display, and a full reset.
 
 **Makes noise** through an I2S amplifier — a click on every switch, a beep on button presses, a
@@ -68,15 +68,29 @@ to show for it:
 | Robot | `EDeviceType` |
 |---|---|
 | [Hexapod](https://github.com/forgevolt/Hexapod) | `eHexapod` |
+| *(reserved for a balancing cube, not published)* | `eBalancingCube` |
+
+A robot without its own image in `ReceiverStatus.cpp` is shown with a generic icon.
 
 ## Getting Started
 1. Install the required libraries (see **Dependencies** below).
 2. Open `software/Transmitter/Transmitter.ino` in the Arduino IDE.
-3. Select board *ESP32 Dev Module*, Flash Size *8MB (64Mb)*, PSRAM *Disabled*.
-4. Partition Scheme: "Custom" (see below if your IDE does not offer it).
-5. Upload.
+3. Select the board and settings below.
+4. Upload.
 
-PSRAM stays disabled: the module has none, and the firmware does not use any.
+### Board settings
+
+Board package **esp32 by Espressif, 3.3.12**. Select **ESP32 Dev Module** and change these
+settings; everything else stays at its default:
+
+| Setting | Value | Note |
+| --- | --- | --- |
+| Flash Size | **8MB (64Mb)** | the default is 4MB |
+| PSRAM | **Disabled** | the module has none, and the firmware does not use any |
+| Partition Scheme | **Custom** | only sets the upload size check; `partitions.csv` defines the layout, see below |
+
+For `arduino-cli`, the same settings are the FQBN
+`esp32:esp32:esp32:FlashSize=8M,PartitionScheme=custom`.
 
 The partition scheme `software/Transmitter/partitions.csv` sits in the
 sketch folder, and the ESP32 core uses it: a 6 MB application partition plus a 1.9 MB LittleFS 
@@ -85,7 +99,9 @@ live in NVS — so there is nothing to upload to it, but the space is reserved.
 
 `partitions.csv` replaces whatever the Partition Scheme menu selects, so "Custom" is not strictly
 needed. The menu only sets the size limit of the upload check: if "Custom" is not offered, choose
-*Huge APP (3MB No OTA/1MB SPIFFS)*; the app is about 1.25 MB.
+*Huge APP (3MB No OTA/1MB SPIFFS)*; the app is about 1.25 MB. With "Custom" the check allows the
+whole 16 MB address space, so it does not guard the 6 MB application partition - a known limit,
+far from the app's size.
 
 The display needs no setting up: `software/Transmitter/build_opt.h` configures TFT_eSPI as part of
 the build. See [software/Config/TFT_eSPI](software/Config/TFT_eSPI/README.md) if you would rather
@@ -109,7 +125,7 @@ Versions are the ones this project is built and tested against.
 | Adafruit MAX1704X | 1.0.3 | |
 | Adafruit BusIO | 1.17.4 | dependency of MAX1704X |
 | [ESPNowUtilities](https://github.com/forgevolt/ESPNowUtilities) | 1.0.1 | the ESP-NOW transport `RCProtocol.h` is built on |
-| [SoundEngine](https://github.com/forgevolt/SoundEngine) | 1.1.0 | `SoundEngine.h` and the `sounds/` clips |
+| [SoundEngine](https://github.com/forgevolt/SoundEngine) | 1.1.1 | `SoundEngine.h` and the `sounds/` clips |
 | [VectorUtilities](https://github.com/forgevolt/VectorUtilities) | 1.0.0 | `mapf()`, `deg2rad` and the disk mapping of the IMU display |
 
 ## Compiler warnings
@@ -150,6 +166,20 @@ cd software
 
 `--warnings all` matters: without it `arduino-cli` uses `none`, which passes `-w` just like the
 IDE setting. The flags themselves come from `build_opt.h`.
+
+## How it runs
+
+Four FreeRTOS tasks matter here. Everything the operator sees and sends runs in `loop()`:
+
+| Task | Priority | Core | Rate | Does |
+| --- | --- | --- | --- | --- |
+| `loopTask` | 1 | 1 | screen 30 fps, send 20 Hz | `loop()`: input snapshot, UI step and draw, and the control frames - each job on its own schedule |
+| `processEvents` | 1 | 1 | every 2 ms | debounces the two joystick buttons and the four switches (`InputController`) |
+| `fillBuffer` | 1 | 1 | - | mixes and queues the next audio chunk (owned by SoundEngine) |
+| Wi-Fi task | 23 | 0 | - | the ESP-NOW receive callback: pairing requests and the robot's telemetry |
+
+The joysticks are read from `loop()` only. The button and switch state is shared with
+`processEvents` under a mutex, and the received telemetry with the Wi-Fi task under another.
 
 ## License
 This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.

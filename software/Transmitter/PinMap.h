@@ -1,4 +1,6 @@
-// Single source of truth for every GPIO used in the project
+// Every GPIO used in the project. The display's own pins (DC, RST, backlight) are set in
+// build_opt.h with the rest of the TFT_eSPI configuration; the shared SPI pins below are checked
+// against it at compile time.
 #pragma once
 
 // I2S (audio)
@@ -11,18 +13,22 @@ constexpr int cI2C_SDA = 21;
 constexpr int cI2C_SCL = 22;
 
 // SPI
+// The ESP32 Dev Module's default MISO is GPIO 19, the I2S LRC here. Safe, because setup() and
+// TFT_eSPI pass explicit pins with MISO = -1; a library calling a bare SPI.begin() would take it.
 constexpr int cSPI_SCK   = 18;
 constexpr int cSPI_MISO  = -1; // Not used
 constexpr int cSPI_MOSI  = 23; // the display module's SDA pin
 constexpr int cSPI_SS_CS = 5; 
 
-// TFT_eSPI configuration
-// #define TFT_MISO -1
-// #define TFT_MOSI 23
-// #define TFT_SCLK 18
-// #define TFT_CS    5
-// #define TFT_DC   15
-// #define TFT_RST   4 
+// TFT_eSPI is configured by -D flags in build_opt.h: TFT_DC (15), TFT_RST (4) and TFT_BL (2) are
+// set only there, and its SPI pins must equal the ones above. The check is skipped when TFT_eSPI is
+// configured the conventional way instead (software/Config/TFT_eSPI), as the flags are then absent.
+#if defined(TFT_SCLK) && defined(TFT_MISO) && defined(TFT_MOSI) && defined(TFT_CS)
+static_assert(cSPI_SCK   == TFT_SCLK, "cSPI_SCK differs from TFT_SCLK in build_opt.h");
+static_assert(cSPI_MISO  == TFT_MISO, "cSPI_MISO differs from TFT_MISO in build_opt.h");
+static_assert(cSPI_MOSI  == TFT_MOSI, "cSPI_MOSI differs from TFT_MOSI in build_opt.h");
+static_assert(cSPI_SS_CS == TFT_CS,   "cSPI_SS_CS differs from TFT_CS in build_opt.h");
+#endif
 
 // Switches and joysticks
 constexpr int cPinJoyLBtn  = 25;

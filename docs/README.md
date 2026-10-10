@@ -22,9 +22,9 @@ what makes it possible to change an icon later - the headers themselves are not 
 
 ## Wiring
 
-There is no wiring diagram here yet. For anyone building without the PCB, `hardware/schematic.pdf`
-is the closest thing, and `software/Transmitter/PinMap.h` lists every pin assignment - though on
-its own it does not convey how the parts connect.
+The wiring diagram is `hardware/schematic.pdf`. `software/Transmitter/PinMap.h` lists every pin
+assignment, except the display's DC, RST and backlight pins, which `software/Transmitter/build_opt.h`
+sets together with the rest of the TFT_eSPI configuration.
 
 Two details of the switch wiring are worth stating explicitly, because neither is visible in a
 pin list.
@@ -42,3 +42,6 @@ and it would stop the board booting.
 
 This is specific to modules with 3.3 V flash. ESP32-WROVER modules other than the -B run 1.8 V
 flash and carry an internal pull-up on GPIO 12, where the same wiring behaves differently.
+
+GPIO 12 is one of four strapping pins in use; `hardware/README.md` lists all of them with the level
+each needs at reset.
