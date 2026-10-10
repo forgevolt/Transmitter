@@ -21,8 +21,8 @@ class IMUCalibration : public MenuItem
 
   private:
     // Countdown before the measurement, the measurement itself (spread over several step()
-    // calls), and the message shown when the result is rejected.
-    enum class EPhase { eCountdown, eMeasuring, eFailed };
+    // calls), and the message shown with the result: stored or rejected.
+    enum class EPhase { eCountdown, eMeasuring, eStored, eFailed };
 
     // Sets the measured offsets, then checks them against the readings they produce. Restores the
     // previous offsets and returns false if those are not the readings of a flat transmitter at rest.

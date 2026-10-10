@@ -12,6 +12,7 @@ namespace
 const unsigned long cWaitDuration  = 3000; // wait time until the calibration begins
 const String cMenuName = "IMU Calibration";
 
+constexpr unsigned long cStoredDuration = 1500; // how long "Calibration stored" stays on screen
 constexpr unsigned long cFailedDuration = 3000; // how long "Calibration failed" stays on screen
 
 // Samples averaged into the offsets (as many as MPU6050_light's calcOffsets() takes), and how many
@@ -67,10 +68,11 @@ void IMUCalibration::step(unsigned long dt)
     return;
   }
 
-  // ---- "Calibration failed" on screen
-  if (myPhase == EPhase::eFailed)
+  // ---- Result on screen
+  if (myPhase == EPhase::eStored || myPhase == EPhase::eFailed)
   {
-    if (millis() - myPhaseStartTime > cFailedDuration)
+    const unsigned long duration = (myPhase == EPhase::eStored) ? cStoredDuration : cFailedDuration;
+    if (millis() - myPhaseStartTime > duration)
       setState(EState::eNotActive);
 
     return;
@@ -126,7 +128,9 @@ void IMUCalibration::step(unsigned long dt)
     p.putFloat("accZoffset", myIMU.getAccZoffset());
   p.end();
 
-  setState(EState::eNotActive);
+  myPhase = EPhase::eStored;
+  myPhaseStartTime = millis();
+  markPartialRedraw();
 }
 
 // ----------------------------------------------------------------------------------------
@@ -220,6 +224,12 @@ void IMUCalibration::draw(bool forceRedraw)
       myUI.tft().setTextColor(TFT_WHITE, TFT_BLACK);
       myUI.tft().drawString("Calibrating ...", myUI.width()/2, 140, 4);
       myUI.tft().drawString(String(mySampleCount * 100 / cNumSamples) + " %", myUI.width()/2, 170, 4);
+    }
+    else if (myPhase == EPhase::eStored)
+    {
+      myUI.tft().setTextColor(TFT_GREEN, TFT_BLACK);
+      myUI.tft().drawString("Calibration stored", myUI.width()/2, 140, 4);
+      myUI.tft().fillRect(0, 170, myUI.width(), myUI.tft().fontHeight(4), TFT_BLACK); // the percentage
     }
     else
     {
