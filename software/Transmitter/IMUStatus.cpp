@@ -80,13 +80,17 @@ void IMUStatus::draw(bool forceRedraw)
 
   clearRedrawFlags();
 
-  // ---- Temperature as measured by the MPU-6050
+  // ---- Board temperature
+  // The MPU-6050 measures its own die, which sits on the PCB: the board temperature (plus a degree
+  // or two from the chip's own heat), not the room.
   myUI.tft().setTextDatum(TR_DATUM);
   myUI.tft().setTextColor(cBorderCol, cStatusAreaCol);
   myUI.tft().setTextPadding(myUI.tft().textWidth("000", 2)); // Padding will blank area not covered by the string
   myUI.tft().drawFloat(myTemp, 0, 95, 22, 2);
   myUI.tft().setTextPadding(0);
   myUI.tft().drawString("o", 101, 21, 1);
+  myUI.tft().setTextDatum(TL_DATUM);
+  myUI.tft().drawString("C", 102, 22, 2);
 
   // ---- IMU values
   static bool reported = false;
