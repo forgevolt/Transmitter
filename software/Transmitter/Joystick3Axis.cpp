@@ -9,8 +9,13 @@ using namespace vectorutilities;
 namespace
 {
 
-// How far (in ADC counts) the stick must move from the center before it registers
-const int cDeadzone = 200;     
+// How far (in ADC counts) the stick must move from the center before it registers. At rest,
+// noise moves an axis by about 5 counts (4 samples); the rest of the margin is for the stick not
+// returning to exactly the same spot. Driven on the hexapod without creeping.
+const int cDeadzone = 50;
+
+// ADC readings averaged per axis read; halves the noise at rest (about 5 counts instead of 10)
+const int cNumSamples = 4;
 
 // Threshold values to trigger up, down, left and right 
 const int cDirOnThreshold = 500;
@@ -19,6 +24,16 @@ const int cDirOffThreshold = 300;
 // Auto-repeat related constants
 const unsigned long cAutoRepeatDelay = 1500;
 const unsigned long cRepeatInterval  = 300;
+
+// ----------------------------------------------------------------------------------------
+// Averages cNumSamples readings of one ADC pin.
+uint16_t readADC(int pin)
+{
+  uint32_t sum = 0;
+  for (int i = 0; i < cNumSamples; i++)
+    sum += analogRead(pin);
+  return sum / cNumSamples;
+}
 
 } // namespace
 
@@ -144,7 +159,7 @@ uint16_t Joystick3Axis::readRaw(int pin) const
   if (myIsActive == false)
     return 0;
 
-  return analogRead(pin);
+  return readADC(pin);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -153,8 +168,7 @@ int Joystick3Axis::readAxis(int pin, int min, int max, int center) const
   if (myIsActive == false)
     return 0;
 
-  // Oversampling (e.g. 8 samples) might reduce noise -> not required
-  uint16_t value = analogRead(pin);
+  uint16_t value = readADC(pin);
 
   if (value >= center - cDeadzone && value <= center + cDeadzone)
     return 0;
