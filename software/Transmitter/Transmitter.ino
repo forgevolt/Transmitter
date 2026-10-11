@@ -201,7 +201,8 @@ void setup()
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
 
-  // Always set the pins explicitly.
+  // Always set the pins explicitly. The first begin() of a bus wins and later ones are ignored, so a
+  // library calling a bare SPI.begin() cannot claim the default pins (MISO = GPIO 19, the I2S LRC).
   // 400 kHz rather than the 100 kHz Wire.begin() substitutes when given no frequency. The MPU-6050
   // read is 153 bit-times: 1.53 ms at 100 kHz against 0.38 ms here, in a 33 ms frame at 30 fps.
   Wire.begin(cI2C_SDA, cI2C_SCL, 400000);

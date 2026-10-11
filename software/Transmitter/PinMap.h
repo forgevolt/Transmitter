@@ -14,7 +14,7 @@ constexpr int cI2C_SCL = 22;
 
 // SPI
 // The ESP32 Dev Module's default MISO is GPIO 19, the I2S LRC here. Safe, because setup() and
-// TFT_eSPI pass explicit pins with MISO = -1; a library calling a bare SPI.begin() would take it.
+// TFT_eSPI pass explicit pins with MISO = -1, and setup() calls SPI.begin() before any library can.
 constexpr int cSPI_SCK   = 18;
 constexpr int cSPI_MISO  = -1; // Not used
 constexpr int cSPI_MOSI  = 23; // the display module's SDA pin
