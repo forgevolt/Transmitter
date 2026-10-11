@@ -9,6 +9,9 @@
 
 #include <Streaming.h>
 #include <WiFi.h>
+#include <esp_system.h>    // esp_reset_reason()
+#include <esp_core_dump.h> // esp_core_dump_get_summary()
+#include <iterator>        // std::size
 
 // ---- Transmitter Configuration
 
@@ -123,6 +126,49 @@ static void showStartupFailures()
 }
 
 //----------------------------------------------------------------------------------------------
+static const char* resetReasonName(esp_reset_reason_t reason)
+{
+  switch (reason)
+  {
+    case ESP_RST_POWERON:   return "power-on";
+    case ESP_RST_EXT:       return "external reset pin";
+    case ESP_RST_SW:        return "software restart";
+    case ESP_RST_PANIC:     return "panic / exception";
+    case ESP_RST_INT_WDT:   return "interrupt watchdog";
+    case ESP_RST_TASK_WDT:  return "task watchdog";
+    case ESP_RST_WDT:       return "other watchdog";
+    case ESP_RST_DEEPSLEEP: return "deep-sleep wake";
+    case ESP_RST_BROWNOUT:  return "brownout - supply voltage dipped";
+    case ESP_RST_SDIO:      return "SDIO";
+    default:                return "unknown";
+  }
+}
+
+//----------------------------------------------------------------------------------------------
+// Prints the core dump a panic left in flash (task, PC, backtrace), then erases it. Decode the
+// addresses with the .elf of the same build (ESP Exception Decoder or xtensa-esp32-elf-addr2line).
+// The UART cannot tell whether a monitor is open, so a boot with nobody watching loses the dump.
+static void reportCoreDump()
+{
+  if (esp_core_dump_image_check() != ESP_OK)
+    return; // no dump stored, or a corrupted one
+
+  esp_core_dump_summary_t summary;
+  if (esp_core_dump_get_summary(&summary) != ESP_OK)
+    return;
+
+  Serial << "Core dump from an earlier crash: task " << summary.exc_task
+         << ", PC 0x" << _HEX(summary.exc_pc) << endl;
+
+  Serial << "  Backtrace:";
+  for (uint32_t i = 0; i < summary.exc_bt_info.depth && i < std::size(summary.exc_bt_info.bt); i++)
+    Serial << " 0x" << _HEX(summary.exc_bt_info.bt[i]);
+  Serial << (summary.exc_bt_info.corrupted ? " (corrupted)" : "") << endl;
+
+  esp_core_dump_image_erase();
+}
+
+//----------------------------------------------------------------------------------------------
 void setup()
 {
   Serial.begin(115200);
@@ -130,7 +176,21 @@ void setup()
   // Give the USB-to-UART bridge and host OS time to stabilize and open the port
   delay(700);
 
-  Serial << "SW version from " << __DATE__ << " " << __TIME__ << endl;
+  Serial << "SW version from " << __DATE__ << " " << __TIME__
+         << ", app protocol version " << int(cAppProtocolVersion) << endl;
+
+  // Why did the last run end? Anything but a power-on or a deliberate reset is a panic, a watchdog
+  // or a brownout (battery empty), which would otherwise look like a normal start.
+  const esp_reset_reason_t resetReason = esp_reset_reason();
+  const bool abnormalReset = (resetReason != ESP_RST_POWERON &&
+                              resetReason != ESP_RST_EXT &&
+                              resetReason != ESP_RST_SW);
+
+  Serial << "Reset reason: " << resetReasonName(resetReason)
+         << (abnormalReset ? "   *** previous run ended abnormally ***" : "") << endl;
+
+  // Always checked: a crash in the field is usually followed by a power-on.
+  reportCoreDump();
   
   // Allow every log level at run time. Which levels are compiled in is chosen with
   // Tools -> Core Debug Level in the Arduino IDE (None ... Verbose).

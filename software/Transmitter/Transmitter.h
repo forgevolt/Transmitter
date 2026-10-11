@@ -7,6 +7,9 @@
 // ---- Transmitter -----------------------------------------------------------------------
 // Contains the logic specific to the transmitter. It acts as the server that waits for
 // a peer (receiver) to show up "on air".
+//
+// Pairing is deliberately simple: unencrypted, and with the first receiver that asks while the
+// transmitter is not paired. ESP-NOW's encrypted peers (PMK/LMK) were judged not worth the setup.
 
 class Transmitter : public ESPNowConnection
 {
