@@ -18,6 +18,9 @@ const unsigned long cCenterTotalDuration = 6000;
 // Total of 10 seconds to move all axes (up to six) to min/max positions
 const unsigned long cMinMaxDuration = 10000;
 
+// How long the list of axes that were not accepted stays on screen (unless the button is pressed)
+const unsigned long cResultDuration = 5000;
+
 const float cRectLength = 100;           // H/V slider length
 const float cRectWidth  = 15;            // H/V slider width
 const float cRectR      = 8;             // H/V rounded rectangle radius
@@ -45,6 +48,16 @@ const int32_t cRightZPosX = cRightYPosX  //        z-axis, pos x
                           - cArcR;
 const int32_t cRightZPosY = cRightXPosY  //                pos y
                           - cArcR;
+
+// The axes of one joystick that were not accepted, e.g. "X, Z". Empty if all were accepted.
+String rejectedAxes(const Joystick3Axis::CalibrationResult& result)
+{
+  String axes;
+  if (result.x == false) axes += "X";
+  if (result.y == false) axes += (axes.isEmpty() ? "Y" : ", Y");
+  if (result.z == false) axes += (axes.isEmpty() ? "Z" : ", Z");
+  return axes;
+}
 
 } // namespace
 
@@ -88,6 +101,14 @@ void JoystickCalibration::step(unsigned long dt)
         finish();
       else
         accumulateMinMax();
+      break;
+
+    case EPhase::eResult:
+      if (myStopRequested == true || millis() - myResultStartTime > cResultDuration)
+      {
+        myPhase = EPhase::eIdle;
+        setState(EState::eNotActive);
+      }
       break;
   }
 }
@@ -175,16 +196,25 @@ void JoystickCalibration::accumulateMinMax()
 // ----------------------------------------------------------------------------------------
 // Both ways out of eMinMax - the button and the timeout - store what has been measured. The
 // on-screen prompt is "Press button to exit", and an early exit still carries a full set of center
-// values plus whatever travel the user swept.
+// values plus whatever travel the user swept. If an axis was not accepted, the result screen
+// says which one before the calibration closes.
 void JoystickCalibration::finish()
 {
-  myPhase = EPhase::eIdle;
-  setState(EState::eNotActive);
+  // An inactive joystick reports all axes as accepted
+  myResultLeft  = myJoyLeft.setCalibrationData(myMinLX, myMaxLX, myCenterLX, myMinLY, myMaxLY, myCenterLY, myMinLZ, myMaxLZ, myCenterLZ);
+  myResultRight = myJoyRight.setCalibrationData(myMinRX, myMaxRX, myCenterRX, myMinRY, myMaxRY, myCenterRY, myMinRZ, myMaxRZ, myCenterRZ);
 
-  if (myJoyLeft.isActive())
-    myJoyLeft.setCalibrationData(myMinLX, myMaxLX, myCenterLX, myMinLY, myMaxLY, myCenterLY, myMinLZ, myMaxLZ, myCenterLZ);
-  if (myJoyRight.isActive())
-    myJoyRight.setCalibrationData(myMinRX, myMaxRX, myCenterRX, myMinRY, myMaxRY, myCenterRY, myMinRZ, myMaxRZ, myCenterRZ);
+  if (myResultLeft.allAccepted() && myResultRight.allAccepted())
+  {
+    myPhase = EPhase::eIdle;
+    setState(EState::eNotActive);
+    return;
+  }
+
+  myPhase           = EPhase::eResult;
+  myStopRequested   = false;   // the press that ended eMinMax does not close the result screen
+  myResultStartTime = millis();
+  markRedraw();
 }
 
 // ----------------------------------------------------------------------------------------
@@ -208,6 +238,10 @@ void JoystickCalibration::draw(bool forceRedraw)
 
     case EPhase::eMinMax:
       drawMinMaxScreen(forceRedraw);
+      break;
+
+    case EPhase::eResult:
+      drawResultScreen(forceRedraw);
       break;
   }
 
@@ -285,6 +319,36 @@ void JoystickCalibration::drawMinMaxScreen(bool forceRedraw)
   drawSliderH(cRightXPosX, cRightXPosY, myMinRX, myMaxRX, myCenterRX, myJoyRight.getRawX(), myJoyRight.isActive());
   drawSliderV(cRightYPosX, cRightYPosY, myMinRY, myMaxRY, myCenterRY, myJoyRight.getRawY(), myJoyRight.isActive());
   drawSliderA(cRightZPosX, cRightZPosY, myMinRZ, myMaxRZ, myCenterRZ, myJoyRight.getRawZ(), myJoyRight.isActive());
+}
+
+// ----------------------------------------------------------------------------------------
+// Static screen: drawn once, then left alone until step() closes it.
+void JoystickCalibration::drawResultScreen(bool forceRedraw)
+{
+  if (forceRedraw == false && needsRedraw() == false)
+    return;
+
+  myUI.tft().fillScreen(TFT_BLACK);
+
+  myUI.tft().setTextDatum(TC_DATUM);
+  myUI.tft().setTextColor(TFT_WHITE);
+  myUI.tft().drawString("Min/Max Calibration", myUI.width()/2, 20, 4);
+  myUI.tft().drawFastHLine(0, 60, myUI.width(), TFT_WHITE);
+  myUI.tft().drawString("Not moved during calibration:", myUI.width()/2, 80, 4);
+
+  int y = 110;
+  myUI.tft().setTextColor(TFT_ORANGE);
+  if (myResultLeft.allAccepted() == false)
+  {
+    myUI.tft().drawString("Left joystick: " + rejectedAxes(myResultLeft), myUI.width()/2, y, 4);
+    y += 30;
+  }
+  if (myResultRight.allAccepted() == false)
+    myUI.tft().drawString("Right joystick: " + rejectedAxes(myResultRight), myUI.width()/2, y, 4);
+
+  myUI.tft().setTextColor(TFT_WHITE);
+  myUI.tft().drawString("Full range stored for these axes.", myUI.width()/2, 170, 4);
+  myUI.tft().drawString("Press button to exit.", myUI.width()/2, 200, 4);
 }
 
 // ----------------------------------------------------------------------------------------

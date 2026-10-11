@@ -28,11 +28,23 @@ class Joystick3Axis
     // Initialize and start processing
     void begin();
 
+    // Per axis: true if the calibration data was accepted, false if the axis fell back to the
+    // full ADC range because the data leaves no usable travel.
+    struct CalibrationResult
+    {
+      bool x = true;
+      bool y = true;
+      bool z = true;
+
+      bool allAccepted() const { return x && y && z; }
+    };
+
     // Calibration information that is taken into account when computing the current value 
-    // of an axis (getter methods).
-    void setCalibrationData(int minX, int maxX, int centerX,
-                            int minY, int maxY, int centerY,
-                            int minZ, int maxZ, int centerZ);
+    // of an axis (getter methods). An inactive joystick ignores the data and reports all axes
+    // as accepted.
+    CalibrationResult setCalibrationData(int minX, int maxX, int centerX,
+                                         int minY, int maxY, int centerY,
+                                         int minZ, int maxZ, int centerZ);
 
     // Samples all three axes and advances the four direction state machines from that sample.
     // Everything below reports it until the next call, so one update() per frame gives the
@@ -94,8 +106,9 @@ class Joystick3Axis
 
     // Stores one axis's calibration if it describes usable travel, and falls back to the
     // full-range defaults if it does not. Applied to data from Preferences and from
-    // setCalibrationData() alike, so no route into the members bypasses the check.
-    void setAxisCalibration(int& min, int& max, int& center,
+    // setCalibrationData() alike, so no route into the members bypasses the check. Returns
+    // true if the new data was accepted.
+    bool setAxisCalibration(int& min, int& max, int& center,
                             int newMin, int newMax, int newCenter, const char* axis);
 
     // Shared on/off-threshold + auto-repeat state machine. 'value' must already be signed so

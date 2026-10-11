@@ -59,16 +59,18 @@ void Joystick3Axis::begin()
 }
 
 // ----------------------------------------------------------------------------------------
-void Joystick3Axis::setCalibrationData(int minX, int maxX, int centerX,
-                                       int minY, int maxY, int centerY,
-                                       int minZ, int maxZ, int centerZ)
+Joystick3Axis::CalibrationResult Joystick3Axis::setCalibrationData(int minX, int maxX, int centerX,
+                                                                   int minY, int maxY, int centerY,
+                                                                   int minZ, int maxZ, int centerZ)
 {
-  if (myIsActive == false)
-    return;
+  CalibrationResult result;
 
-  setAxisCalibration(myMinX, myMaxX, myCenterX, minX, maxX, centerX, "X");
-  setAxisCalibration(myMinY, myMaxY, myCenterY, minY, maxY, centerY, "Y");
-  setAxisCalibration(myMinZ, myMaxZ, myCenterZ, minZ, maxZ, centerZ, "Z");
+  if (myIsActive == false)
+    return result;
+
+  result.x = setAxisCalibration(myMinX, myMaxX, myCenterX, minX, maxX, centerX, "X");
+  result.y = setAxisCalibration(myMinY, myMaxY, myCenterY, minY, maxY, centerY, "Y");
+  result.z = setAxisCalibration(myMinZ, myMaxZ, myCenterZ, minZ, maxZ, centerZ, "Z");
 
   // Store the calibration data in NVS. The members rather than the parameters, so a rejected
   // axis persists the defaults it fell back to instead of the data that was turned down.
@@ -89,10 +91,12 @@ void Joystick3Axis::setCalibrationData(int minX, int maxX, int centerX,
   p.putInt("centerZ", myCenterZ);
 
   p.end();
+
+  return result;
 }
 
 // ----------------------------------------------------------------------------------------
-void Joystick3Axis::setAxisCalibration(int& min, int& max, int& center,
+bool Joystick3Axis::setAxisCalibration(int& min, int& max, int& center,
                                        int newMin, int newMax, int newCenter, const char* axis)
 {
   // Both halves of the travel have to clear the deadzone with room left over. Below that the
@@ -105,7 +109,7 @@ void Joystick3Axis::setAxisCalibration(int& min, int& max, int& center,
     min    = newMin;
     max    = newMax;
     center = newCenter;
-    return;
+    return true;
   }
 
   min    = cADC_MIN;
@@ -115,6 +119,7 @@ void Joystick3Axis::setAxisCalibration(int& min, int& max, int& center,
   Serial << __PRETTY_FUNCTION__ << " -> joystick on pin " << myPinX << ", axis " << axis
          << ": min " << newMin << " max " << newMax << " center " << newCenter
          << " leaves no usable travel -> using defaults" << endl;
+  return false;
 }
 
 // ----------------------------------------------------------------------------------------
