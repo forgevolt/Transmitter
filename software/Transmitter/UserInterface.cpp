@@ -55,10 +55,10 @@ void UserInterface::begin()
   myInput.begin();
   myInputState = myInput.getState();
   if (mySound.begin() == false)
-    Serial << "ERROR: " << __PRETTY_FUNCTION__ << " -> sound engine init failed" << endl;    
+    Serial << "ERROR: " << __PRETTY_FUNCTION__ << " -> sound engine init failed" << endl;
   mySound.setVolume(mySound.click(), 200); // Otherwise the switches' own mechanical click drowns it out
-  mySound.setVolume(startupClip, 20);  
-  
+  mySound.setVolume(startupClip, 20);
+
   mySound.play(startupClip);
 }
 
@@ -106,15 +106,15 @@ void UserInterface::startMenu()
   if (myMenu == nullptr)
     return;
 
-  else if (myMenu->isActive() == false) 
+  else if (myMenu->isActive() == false)
   {
     if (myMenuStartDelay == 0)
       myMenuStartDelay = millis();
 
     else if (millis() - myMenuStartDelay > cMenuStartDelayMs)
-    {  
+    {
       myMenu->start();
-      markRedraw(); 
+      markRedraw();
     }
   }
 }
@@ -126,7 +126,7 @@ void UserInterface::stopMenu()
   if (myMenu == nullptr)
     return;
 
-  else if (myMenu->isActive() == true) 
+  else if (myMenu->isActive() == true)
   {
     myMenuStartDelay = 0;
     myMenu->stop();
@@ -204,25 +204,25 @@ void UserInterface::step(unsigned long dt)
   (myInputState.s1 == true) ? startMenu() : stopMenu();
 
   if (myInputState.joyL == true || myInputState.joyR == true) { beep(); onClick(); }
-  
+
   if (myInputState.up    == true) { onUp();    }
   if (myInputState.down  == true) { onDown();  }
   if (myInputState.right == true) { onRight(); }
   if (myInputState.left  == true) { onLeft();  }
-      
+
   // ---- "step" menu or display objects
 
   if (myMenu != nullptr && myMenu->isActive() == true)
   {
     myMenu->step(dt);
   }
-  else 
+  else
   {
     for (auto object : myMainScreenObjects)
     {
       if (object->isActive() == true)
         object->step(dt);
-    } 
+    }
   }
 }
 
@@ -236,7 +236,7 @@ void UserInterface::draw()
   {
     myMenu->draw(needsRedraw());
   }
-  else 
+  else
   {
     // Two display areas (status & main)
     if (needsRedraw() == true)
@@ -248,7 +248,7 @@ void UserInterface::draw()
     for (auto object : myMainScreenObjects)
     {
       object->draw(needsRedraw());
-    } 
+    }
   }
 
   clearRedrawFlag();

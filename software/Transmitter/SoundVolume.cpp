@@ -54,7 +54,7 @@ void SoundVolume::draw(bool forceRedraw)
   if (forceRedraw == false && needsRedraw() == false && needsPartialRedraw() == false)
     return;
 
-  if (forceRedraw == true || needsRedraw() == true)  
+  if (forceRedraw == true || needsRedraw() == true)
   {
     myUI.tft().fillScreen(TFT_BLACK);
     myUI.tft().setTextDatum(TC_DATUM);
@@ -67,15 +67,15 @@ void SoundVolume::draw(bool forceRedraw)
 
   // ---- Partial redraw
 
-  // Visualize sound volume with a "progress bar" 
-  myUI.tft().drawSmoothRoundRect(100-cRectR, 170-cRectWidth/2, cRectR, cRectR-1, 
+  // Visualize sound volume with a "progress bar"
+  myUI.tft().drawSmoothRoundRect(100-cRectR, 170-cRectWidth/2, cRectR, cRectR-1,
                                  myUI.width()-200+2*cRectR, cRectWidth, cBorderCol, TFT_BLACK);
   myUI.tft().drawWideLine(100, 170, 100+myUI.width()-200, 170, cRectWidth-5, TFT_BLACK, TFT_BLACK);
   myUI.tft().drawWideLine(100, 170, 100+float(myUI.width()-200)/cMaxVolume*myUI.sound().getVolume(), 170, cRectWidth-5, TFT_BLUE, TFT_BLUE);
   myUI.tft().setTextDatum(MC_DATUM);
   myUI.tft().setTextColor(TFT_WHITE);
   myUI.tft().drawNumber(myUI.sound().getVolume(), myUI.width()/2, 170, 2);
-  
+
   clearRedrawFlags();
 }
 

@@ -68,7 +68,7 @@ void DisplayObject::drawButton(int x, int y, int length, const String& text, boo
   if (isActive == true)
     myBuf.fillSmoothRoundRect(0, 0, myBuf.width()-2, 34, 16, cBorderColNA, TFT_BLACK);
   myBuf.drawSmoothRoundRect(0, 0, 16, 15, myBuf.width()-2, 34, cBorderCol, cBorderColNA);
-  
+
   myBuf.setTextColor(TFT_WHITE);
   myBuf.setTextDatum(MC_DATUM);
   myBuf.drawString(text, myBuf.width()/2, 19, 4);

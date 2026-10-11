@@ -18,7 +18,7 @@ constexpr int cI2C_SCL = 22;
 constexpr int cSPI_SCK   = 18;
 constexpr int cSPI_MISO  = -1; // Not used
 constexpr int cSPI_MOSI  = 23; // the display module's SDA pin
-constexpr int cSPI_SS_CS = 5; 
+constexpr int cSPI_SS_CS = 5;
 
 // TFT_eSPI is configured by -D flags in build_opt.h: TFT_DC (15), TFT_RST (4) and TFT_BL (2) are
 // set only there, and its SPI pins must equal the ones above. The check is skipped when TFT_eSPI is

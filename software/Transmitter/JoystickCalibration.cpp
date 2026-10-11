@@ -13,7 +13,7 @@ namespace
 
 // Center calibration lasts 6 s (3 s waiting, 3 s measuring)
 const unsigned long cCenterWaitDuration  = 3000; // wait time until the center measurements begin
-const unsigned long cCenterTotalDuration = 6000; 
+const unsigned long cCenterTotalDuration = 6000;
 
 // Total of 10 seconds to move all axes (up to six) to min/max positions
 const unsigned long cMinMaxDuration = 10000;
@@ -39,7 +39,7 @@ const int32_t cLeftZPosY = cLeftXPosY    //               pos y
 
 const float   cRightXPosX = cTFTWidth    // right, x-axis, pos x
                           - cLeftXPosX
-                          - cRectLength;     
+                          - cRectLength;
 const float   cRightXPosY = cLeftXPosY;  //                pos y
 const float   cRightYPosX = cTFTWidth    //        y-axis, pos x
                           - cLeftYPosX;
@@ -274,7 +274,7 @@ void JoystickCalibration::drawCenterScreen(bool forceRedraw)
     myUI.tft().drawFloat(remaining/1000.0f, 0, myUI.width()/2, 110, 4);
     myUI.tft().setTextPadding(0);
   }
-  else 
+  else
   {
     if (needsPartialRedraw() == true)
       myUI.tft().fillRect(0, 80, myUI.width(), 120, TFT_BLACK);
@@ -305,9 +305,9 @@ void JoystickCalibration::drawMinMaxScreen(bool forceRedraw)
 
   // ----- Progress bar
   myUI.tft().drawSmoothRoundRect(100-cRectR, 170-cRectWidth/2, cRectR, cRectR-1, myUI.width()-200+2*cRectR, cRectWidth, cBorderCol, TFT_BLACK);
-  myUI.tft().drawWideLine(100, 170, 
-                                  100+min(float(myUI.width()-200)/cMinMaxDuration*(millis()-myCalibrationStartTime-cCenterTotalDuration), 
-                                          float(myUI.width()-200)), 
+  myUI.tft().drawWideLine(100, 170,
+                                  100+min(float(myUI.width()-200)/cMinMaxDuration*(millis()-myCalibrationStartTime-cCenterTotalDuration),
+                                          float(myUI.width()-200)),
                                   170, cRectWidth-6, TFT_BLUE, TFT_BLUE);
 
   // ----- Left joystick
@@ -375,24 +375,24 @@ void JoystickCalibration::onClick()
 // ----------------------------------------------------------------------------------------
 void JoystickCalibration::drawSliderH(float x, float y, int min, int max, int center, uint16_t raw, bool active)
 {
-  myUI.tft().drawSmoothRoundRect(x-cRectR, y-cRectWidth/2, cRectR, cRectR-1, cRectLength+2*cRectR, cRectWidth, 
+  myUI.tft().drawSmoothRoundRect(x-cRectR, y-cRectWidth/2, cRectR, cRectR-1, cRectLength+2*cRectR, cRectWidth,
                                     active ? cBorderCol : cBorderColNA, TFT_BLACK);
 
   if (active)
   {
     // Distance covered so far
-    myUI.tft().drawWideLine(x+cRectLength/2+mapf(max, center, Joystick3Axis::cADC_MAX, 0, cRectLength/2), y, 
+    myUI.tft().drawWideLine(x+cRectLength/2+mapf(max, center, Joystick3Axis::cADC_MAX, 0, cRectLength/2), y,
                                x+mapf(min, Joystick3Axis::cADC_MIN, center, 0, cRectLength/2), y, cRectWidth-6, TFT_BLUE, TFT_BLUE);
 
     // Dynamic visualization of current axis position
     if (raw <= center)
       myUI.tft().drawSpot(x+mapf(raw, Joystick3Axis::cADC_MIN, center, 0, cRectLength/2), y, cSpotR, TFT_NAVY, TFT_NAVY);
-    else 
+    else
       myUI.tft().drawSpot(x+cRectLength/2+mapf(raw, center, Joystick3Axis::cADC_MAX, 0, cRectLength/2), y, cSpotR, TFT_NAVY, TFT_NAVY);
   }
 
   // Mid point indicator
-  myUI.tft().drawWideLine(x+cRectLength/2, y-cRectWidth/2, x+cRectLength/2, y+cRectWidth/2, 1, 
+  myUI.tft().drawWideLine(x+cRectLength/2, y-cRectWidth/2, x+cRectLength/2, y+cRectWidth/2, 1,
                              active ? cBorderCol : cBorderColNA);
 }
 
@@ -405,18 +405,18 @@ void JoystickCalibration::drawSliderV(float x, float y, int min, int max, int ce
   if (active)
   {
     // Distance covered so far
-    myUI.tft().drawWideLine(x, y+cRectLength/2-mapf(max, center, Joystick3Axis::cADC_MAX, 0, cRectLength/2), 
+    myUI.tft().drawWideLine(x, y+cRectLength/2-mapf(max, center, Joystick3Axis::cADC_MAX, 0, cRectLength/2),
                                x, y+cRectLength-mapf(min, Joystick3Axis::cADC_MIN, center, 0, cRectLength/2), cRectWidth-6, TFT_BLUE, TFT_BLUE);
 
     // Dynamic visualization of current axis position
     if (raw <= center)
       myUI.tft().drawSpot(x, y+cRectLength-mapf(raw, Joystick3Axis::cADC_MIN, center, 0, cRectLength/2), cSpotR, TFT_NAVY, TFT_NAVY);
-    else 
+    else
       myUI.tft().drawSpot(x, y+cRectLength/2-mapf(raw, center, Joystick3Axis::cADC_MAX, 0, cRectLength/2), cSpotR, TFT_NAVY, TFT_NAVY);
   }
 
   // Mid point indicator
-  myUI.tft().drawWideLine(x-cRectWidth/2, y+cRectLength/2, x+cRectWidth/2, y+cRectLength/2, 1, 
+  myUI.tft().drawWideLine(x-cRectWidth/2, y+cRectLength/2, x+cRectWidth/2, y+cRectLength/2, 1,
                              active ? cBorderCol : cBorderColNA);
 }
 
@@ -429,8 +429,8 @@ void JoystickCalibration::drawSliderA(float x, float y, int min, int max, int ce
   if (active)
   {
     // Distance covered so far
-    myUI.tft().drawSmoothArc(x, y, cArcR-4, cArcIR+3, 
-                                mapf(min, Joystick3Axis::cADC_MIN, center, 185, 360), 
+    myUI.tft().drawSmoothArc(x, y, cArcR-4, cArcIR+3,
+                                mapf(min, Joystick3Axis::cADC_MIN, center, 185, 360),
                                 mapf(max, center, Joystick3Axis::cADC_MAX, 0, 175), TFT_BLUE, TFT_BLUE, true);
 
     // Dynamic visualization of current axis position
@@ -449,7 +449,7 @@ void JoystickCalibration::drawSliderA(float x, float y, int min, int max, int ce
   }
 
   // Mid point indicator
-  myUI.tft().drawWideLine(x, y+cArcIR, x, y+cArcR, 1, active ? cBorderCol : cBorderColNA);  
+  myUI.tft().drawWideLine(x, y+cArcIR, x, y+cArcR, 1, active ? cBorderCol : cBorderColNA);
 }
 
 

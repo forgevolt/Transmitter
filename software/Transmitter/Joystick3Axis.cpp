@@ -17,7 +17,7 @@ const int cDeadzone = 50;
 // ADC readings averaged per axis read; halves the noise at rest (about 5 counts instead of 10)
 const int cNumSamples = 4;
 
-// Threshold values to trigger up, down, left and right 
+// Threshold values to trigger up, down, left and right
 const int cDirOnThreshold = 500;
 const int cDirOffThreshold = 300;
 
@@ -92,7 +92,7 @@ Joystick3Axis::CalibrationResult Joystick3Axis::setCalibrationData(int minX, int
   Preferences p;
   String ns = "Joystick" + String(myPinX);
   p.begin(ns.c_str());
- 
+
   p.putInt("minX",    myMinX);
   p.putInt("maxX",    myMaxX);
   p.putInt("centerX", myCenterX);

@@ -13,8 +13,8 @@ const float cRectLength = 100;           // H/V slider length
 const float cRectWidth  = 15;            // H/V slider width
 const float cRectR      = 8;             // H/V rounded rectangle radius
 const float cSpotR      = 5;             // radius of the spot indicating the current joystick position
-const uint32_t cSpotCol = 0x4CBB; 
-const uint32_t cBtnCol  = 0x46AB; 
+const uint32_t cSpotCol = 0x4CBB;
+const uint32_t cBtnCol  = 0x46AB;
 const int32_t cArcR     = 28;            // Arc slider outer radius
 const int32_t cArcIR    = 13;            // Arc slider inner radius
 
@@ -32,7 +32,7 @@ const float cBufHeight = cLeftXPosY+cRectWidth/2+2;
 
 const float   cRightXPosX = cBufWidth    // right, x-axis, pos x
                           - cLeftXPosX
-                          - cRectLength;     
+                          - cRectLength;
 const float   cRightXPosY = cLeftXPosY;  //                pos y
 const float   cRightYPosX = cBufWidth    //        y-axis, pos x
                           - cLeftYPosX-1;
@@ -47,9 +47,9 @@ const int32_t cRightZPosY = cRightXPosY  //                pos y
 
 
 // ----------------------------------------------------------------------------------------
-JoystickStatus::JoystickStatus(UserInterface& ui, bool isLeft) 
+JoystickStatus::JoystickStatus(UserInterface& ui, bool isLeft)
 : DisplayObject(ui),
-  myJoystick(isLeft == true ? ui.input().joyL() : ui.input().joyR()), 
+  myJoystick(isLeft == true ? ui.input().joyL() : ui.input().joyR()),
   myIsLeft(isLeft)
 {}
 
@@ -118,7 +118,7 @@ void JoystickStatus::draw(bool forceRedraw)
     myBuf.pushSprite(cMainAreaPosX+8, 132, TFT_TRANSPARENT);
   }
   // Right joystick
-  else 
+  else
   {
     drawSliderH(cRightXPosX, cRightXPosY, myUI.inputState().RX);
     drawSliderV(cRightYPosX, cRightYPosY, myUI.inputState().RY);
@@ -138,7 +138,7 @@ void JoystickStatus::draw(bool forceRedraw)
 void JoystickStatus::drawSliderH(float x, float y, int val)
 {
   myBuf.fillRect(x-cRectR, y-cRectWidth/2, cRectLength+2*cRectR, cRectWidth, cMainAreaCol);
-  myBuf.drawSmoothRoundRect(x-cRectR, y-cRectWidth/2, cRectR, cRectR-1, cRectLength+2*cRectR, cRectWidth, 
+  myBuf.drawSmoothRoundRect(x-cRectR, y-cRectWidth/2, cRectR, cRectR-1, cRectLength+2*cRectR, cRectWidth,
                             myJoystick.isActive() ? cBorderCol : cBorderColNA, TFT_BLACK);
 
   // Dynamic visualization of current axis position
@@ -146,12 +146,12 @@ void JoystickStatus::drawSliderH(float x, float y, int val)
   {
     if (val <= 0)
       myBuf.drawSpot(x+mapf(val, Joystick3Axis::cMIN, 0, 0, cRectLength/2), y, cSpotR, cSpotCol);
-    else 
+    else
       myBuf.drawSpot(x+cRectLength/2+mapf(val, 0, Joystick3Axis::cMAX, 0, cRectLength/2), y, cSpotR, cSpotCol);
   }
 
   // Mid point indicator
-  myBuf.drawWideLine(x+cRectLength/2, y-cRectWidth/2, x+cRectLength/2, y+cRectWidth/2, 1, 
+  myBuf.drawWideLine(x+cRectLength/2, y-cRectWidth/2, x+cRectLength/2, y+cRectWidth/2, 1,
                      myJoystick.isActive() ? cBorderCol : cBorderColNA);
 }
 
@@ -167,12 +167,12 @@ void JoystickStatus::drawSliderV(float x, float y, int val)
   {
     if (val <= 0)
       myBuf.drawSpot(x, y+cRectLength-mapf(val, Joystick3Axis::cMIN, 0, 0, cRectLength/2), cSpotR, cSpotCol);
-    else 
+    else
       myBuf.drawSpot(x, y+cRectLength/2-mapf(val, 0, Joystick3Axis::cMAX, 0, cRectLength/2), cSpotR, cSpotCol);
   }
 
   // Mid point indicator
-  myBuf.drawWideLine(x-cRectWidth/2, y+cRectLength/2, x+cRectWidth/2, y+cRectLength/2, 1, 
+  myBuf.drawWideLine(x-cRectWidth/2, y+cRectLength/2, x+cRectWidth/2, y+cRectLength/2, 1,
                      myJoystick.isActive() ? cBorderCol : cBorderColNA);
 }
 

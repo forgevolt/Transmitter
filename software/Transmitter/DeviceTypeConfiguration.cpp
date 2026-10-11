@@ -36,7 +36,7 @@ void DeviceTypeConfiguration::draw(bool forceRedraw)
   if (forceRedraw == false && needsRedraw() == false && needsPartialRedraw() == false)
     return;
 
-  if (forceRedraw == true || needsRedraw() == true)  
+  if (forceRedraw == true || needsRedraw() == true)
   {
     myUI.tft().fillScreen(TFT_BLACK);
     myUI.tft().setTextDatum(TC_DATUM);
@@ -47,14 +47,14 @@ void DeviceTypeConfiguration::draw(bool forceRedraw)
     myUI.tft().setTextDatum(MC_DATUM);
   }
 
-  // 1-Joy - Button 
+  // 1-Joy - Button
   myUI.tft().pushImage(cLeftPosX, cPosY, img1JoyWidth, img1JoyHeight, img1Joy);
-  myUI.tft().drawSmoothRoundRect(cLeftPosX-4, cPosY-4, 9, 4, img1JoyWidth+8, img1JoyHeight+8, 
+  myUI.tft().drawSmoothRoundRect(cLeftPosX-4, cPosY-4, 9, 4, img1JoyWidth+8, img1JoyHeight+8,
                                     (myIsOneJoySelected == true) ? cSelectedCol : TFT_BLACK, TFT_BLACK);
 
   // 2-Joy - Button
   myUI.tft().pushImage(myUI.width()-cLeftPosX-img2JoyWidth, cPosY, img2JoyWidth, img2JoyHeight, img2Joy);
-  myUI.tft().drawSmoothRoundRect(myUI.width()-cLeftPosX-img2JoyWidth-4, cPosY-4, 9, 4, img2JoyWidth+8, img2JoyHeight+8, 
+  myUI.tft().drawSmoothRoundRect(myUI.width()-cLeftPosX-img2JoyWidth-4, cPosY-4, 9, 4, img2JoyWidth+8, img2JoyHeight+8,
                                     (myIsOneJoySelected == false) ? cSelectedCol : TFT_BLACK, TFT_BLACK);
 
   clearRedrawFlags();

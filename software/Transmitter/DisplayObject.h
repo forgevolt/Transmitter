@@ -20,16 +20,16 @@ class DisplayObject
 
     // Update the state of the display object. 'dt' milliseconds have passed since the last call.
     virtual void step(unsigned long /* dt */) {}
-  
-    // Draw the object 
+
+    // Draw the object
     virtual void draw(bool forceRedraw = false) = 0;
-  
+
     EState getState() const;
     void setState(EState state);
-    
+
     // Returns true if display object is active and must be processed in loop()
     bool isActive() const;
-      
+
     void drawButton(int x, int y, int length, const String& text, bool isActive);
 
     // Redraw flag handling

@@ -9,7 +9,7 @@
 
 // ----------------------------------------------------------------------------------------
 Menu::Menu(UserInterface& ui)
-: DisplayObject(ui), 
+: DisplayObject(ui),
   myActiveItem(0)
 {
   setState(EState::eNotActive);
@@ -49,8 +49,8 @@ void Menu::step(unsigned long dt)
 
     for (auto item : myMenuItems)
     {
-      item->step(dt); 
-    } 
+      item->step(dt);
+    }
   }
 }
 
@@ -76,7 +76,7 @@ void Menu::draw(bool forceRedraw)
     for (auto item : myMenuItems)
     {
       item->draw(forceRedraw || needsRedraw());
-    } 
+    }
   }
 
   clearRedrawFlags();
@@ -132,7 +132,7 @@ void Menu::onClick()
   // Is a MenuItem active?
   else if (myMenuItems[myActiveItem]->isActive() == true)
     myMenuItems[myActiveItem]->onClick();
-  
+
   // Start the MenuItem
   else
   {

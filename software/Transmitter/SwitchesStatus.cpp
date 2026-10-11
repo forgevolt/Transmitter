@@ -14,7 +14,7 @@ const float cRectWidth   = 15.0f;    // total length is cRectWidth + 2*cRectR
 const float cRectHeight  = 15.0f;
 const float cRectR       = 8.0f;
 const float cSpotR       = 6.0f;
-const uint32_t cHighCol  = 0x46AB; 
+const uint32_t cHighCol  = 0x46AB;
 
 const int32_t cPosY     = cMainAreaPosY + 20;
 const int32_t cInc      = 40;
@@ -78,9 +78,9 @@ void SwitchesStatus::draw(bool forceRedraw)
 // ----------------------------------------------------------------------------------------
 void SwitchesStatus::drawState(float x, float y, bool on, const String& label)
 {
-  myUI.tft().drawSmoothRoundRect(x-cRectWidth/2-cRectR, y-cRectHeight/2, 
-                                    cRectR, cRectR-1, 
-                                    cRectWidth+2*cRectR, cRectHeight, 
+  myUI.tft().drawSmoothRoundRect(x-cRectWidth/2-cRectR, y-cRectHeight/2,
+                                    cRectR, cRectR-1,
+                                    cRectWidth+2*cRectR, cRectHeight,
                                     cBorderCol, TFT_BLACK);
 
   if (on == true)
@@ -88,7 +88,7 @@ void SwitchesStatus::drawState(float x, float y, bool on, const String& label)
     myUI.tft().drawSpot(x-cRectWidth/2.0f, y, cSpotR, cMainAreaCol, cMainAreaCol);
     myUI.tft().drawSpot(x+cRectWidth/2.0f-1.0f, y, cSpotR, cHighCol, cMainAreaCol);
   }
-  else 
+  else
   {
     myUI.tft().drawSpot(x-cRectWidth/2.0f, y, cSpotR, cBorderCol, cMainAreaCol);
     myUI.tft().drawSpot(x+cRectWidth/2.0f-1.0f, y, cSpotR, cMainAreaCol, cMainAreaCol);

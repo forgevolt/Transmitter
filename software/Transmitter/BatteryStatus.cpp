@@ -8,7 +8,7 @@ namespace
 
 constexpr uint32_t c80_100 = 0x46AB;
 constexpr uint32_t c60_80  = 0x9EC9;
-constexpr uint32_t c40_60  = 0xFEA0; 
+constexpr uint32_t c40_60  = 0xFEA0;
 constexpr uint32_t c20_40  = 0xEB86;
 constexpr uint32_t c00_20  = 0xC000;
 
@@ -40,7 +40,7 @@ void BatteryStatus::step(unsigned long dt)
 {
   if (isActive() == false)
     return;
-      
+
   // ---- Read the gauge
   // cellPercent() returns NAN when the gauge does not answer. A failed read clears the value:
   // only the outline is drawn, and the gauge is retried every cRetryIntervalMs until it answers
@@ -48,7 +48,7 @@ void BatteryStatus::step(unsigned long dt)
   // empty battery.
   const unsigned long interval = (myCellPercent < 0) ? cRetryIntervalMs : cPollIntervalMs;
   if (millis() - myLastUpdate > interval)
-  { 
+  {
     myLastUpdate = millis();
 
     const float percent = myFuelGauge.cellPercent();
@@ -96,7 +96,7 @@ void BatteryStatus::draw(bool forceRedraw)
 
   uint32_t col;
   int numSeg;
- 
+
   if (myCellPercent > 80)
   {
     col = c80_100;
@@ -105,7 +105,7 @@ void BatteryStatus::draw(bool forceRedraw)
   else if (myCellPercent > 60 && myCellPercent <= 80)
   {
     col = c60_80;
-    numSeg = 4; 
+    numSeg = 4;
   }
   else if (myCellPercent > 40 && myCellPercent <= 60)
   {

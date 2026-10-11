@@ -39,11 +39,11 @@ IMUCalibration::IMUCalibration(UserInterface& ui, Menu& menu, MPU6050& imu)
   Preferences p;
   p.begin("IMU", true); // read-only: does not create the namespace
     myIMU.setGyroOffsets(p.getFloat("gyroXoffset", 0),
-                         p.getFloat("gyroYoffset", 0), 
+                         p.getFloat("gyroYoffset", 0),
                          p.getFloat("gyroZoffset", 0));
     myIMU.setAccOffsets(p.getFloat("accXoffset", 0),
-                        p.getFloat("accYoffset", 0), 
-                        p.getFloat("accZoffset", 0));   
+                        p.getFloat("accYoffset", 0),
+                        p.getFloat("accZoffset", 0));
   p.end();
 }
 
@@ -189,7 +189,7 @@ void IMUCalibration::draw(bool forceRedraw)
   if (forceRedraw == false && needsRedraw() == false && needsPartialRedraw() == false)
     return;
 
-  if (forceRedraw == true || needsRedraw() == true)  
+  if (forceRedraw == true || needsRedraw() == true)
   {
     myUI.tft().fillScreen(TFT_BLACK);
     myUI.tft().setTextDatum(TC_DATUM);
@@ -241,7 +241,7 @@ void IMUCalibration::draw(bool forceRedraw)
 
     myUI.tft().setTextPadding(0);
   }
-  
+
   clearRedrawFlags();
 }
 

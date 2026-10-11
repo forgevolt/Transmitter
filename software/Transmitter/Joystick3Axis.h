@@ -3,20 +3,20 @@
 #include <Arduino.h>
 
 // ---- Joystick3Axis ---------------------------------------------------------------------
-// Representation of the 3-axis joystick. The joystick button is not processed within this 
+// Representation of the 3-axis joystick. The joystick button is not processed within this
 // class.
 
 class Joystick3Axis
 {
-  public: 
+  public:
     // Min/max *raw* return values of getRawX/Y/Z methods
     static constexpr int cADC_MIN = 0;
     static constexpr int cADC_MAX = 4095; // ESP32, 12-bit
-    
+
     // Min/max return values of the getX/Y/Z methods
     static constexpr int cMIN = -1000;
     static constexpr int cMAX =  1000;
-    
+
   public:
     Joystick3Axis(int pinX, int pinY, int pinZ);
 
@@ -39,7 +39,7 @@ class Joystick3Axis
       bool allAccepted() const { return x && y && z; }
     };
 
-    // Calibration information that is taken into account when computing the current value 
+    // Calibration information that is taken into account when computing the current value
     // of an axis (getter methods). An inactive joystick ignores the data and reports all axes
     // as accepted.
     CalibrationResult setCalibrationData(int minX, int maxX, int centerX,
@@ -56,7 +56,7 @@ class Joystick3Axis
     int getX() const { return myValueX; }
     int getY() const { return myValueY; }
     int getZ() const { return myValueZ; }
- 
+
     // Raw values, e.g. for calibration. An inactive joystick reads 0 without
     // touching the ADC.
     uint16_t getRawX() { return readRaw(myPinX); }

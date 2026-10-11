@@ -4,7 +4,7 @@
 #include "Joystick3Axis.h"
 
 // ---- JoystickCalibration ---------------------------------------------------------------
-// Center and min/max calibration for one or two 3-axis joysticks. 
+// Center and min/max calibration for one or two 3-axis joysticks.
 
 class JoystickCalibration : public MenuItem
 {

@@ -13,11 +13,11 @@
 namespace
 {
 
-const uint32_t cPairedCol    = 0x4CBB; 
+const uint32_t cPairedCol    = 0x4CBB;
 const uint32_t cNotPairedCol = 0xE0E3;
 
 const float cPosX = 430;
-const float cPosY = 40; 
+const float cPosY = 40;
 
 const int32_t cIconRectPosX   = 80;
 const int32_t cIconRectPosY   = cMainAreaPosY+55;
@@ -49,8 +49,8 @@ void ReceiverStatus::step(unsigned long dt)
   if (myLastPaired != paired)
   {
     markRedraw();
-    myLastPaired = paired; 
-  } 
+    myLastPaired = paired;
+  }
 
   ESPNowConnection::PeerInfo pi;
   bool havePeer = paired && myTransmitter.getPeerInfo(pi);
@@ -58,14 +58,14 @@ void ReceiverStatus::step(unsigned long dt)
   if (havePeer == true && myPeerDevice != static_cast<EDeviceType>(pi.device))
   {
     markRedraw();
-    myPeerDevice = static_cast<EDeviceType>(pi.device);     
+    myPeerDevice = static_cast<EDeviceType>(pi.device);
   }
 
   // Updated messages from peer (receiver)? Only meaningful while paired, so this is
   // skipped entirely (rather than run and discarded) when there's no peer.
   if (havePeer == true)
   {
-    Transmitter::PeerData peerData = myTransmitter.getPeerData(); 
+    Transmitter::PeerData peerData = myTransmitter.getPeerData();
 
     bool showMessages = false;
     for (int i=0; i<int(cNumMessages); i++)
@@ -90,7 +90,7 @@ void ReceiverStatus::step(unsigned long dt)
 
     myShowMessages = showMessages;
     myPeerData = peerData;
-  }  
+  }
 }
 
 // ----------------------------------------------------------------------------------------
@@ -142,18 +142,18 @@ void ReceiverStatus::draw(bool forceRedraw)
       case eHexapod:
         {
           int32_t posX = (myShowMessages == true) ? cIconRectPosX + 20 : cIconRectPosX+cIconRectWidth/2  - imgHexapodWidth/2;
-          myUI.tft().pushImage(posX, cIconRectPosY+cIconRectHeight/2 - imgHexapodHeight/2, 
+          myUI.tft().pushImage(posX, cIconRectPosY+cIconRectHeight/2 - imgHexapodHeight/2,
                               imgHexapodWidth, imgHexapodHeight, imgHexapod);
         }
         break;
-      
+
       // Hint: add an image for each receiver type
       // case eAnotherDevice:
       //   break;
 
       default:
-        myUI.tft().pushImage(cIconRectPosX+cIconRectWidth/2  - imgUnknownReceiverWidth/2, 
-                             cIconRectPosY+cIconRectHeight/2 - imgUnknownReceiverHeight/2, 
+        myUI.tft().pushImage(cIconRectPosX+cIconRectWidth/2  - imgUnknownReceiverWidth/2,
+                             cIconRectPosY+cIconRectHeight/2 - imgUnknownReceiverHeight/2,
                              imgUnknownReceiverWidth, imgUnknownReceiverHeight, imgUnknownReceiver);
 
         break;

@@ -18,7 +18,7 @@ class DeviceTypeConfiguration : public MenuItem
     // From class MenuItem
     void start()   override;
     void onClick() override;
-    void onRight() override; 
+    void onRight() override;
     void onLeft()  override;
 
     // true:  1-joystick setup configured

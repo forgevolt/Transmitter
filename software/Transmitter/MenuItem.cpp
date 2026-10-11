@@ -23,8 +23,8 @@ void MenuItem::draw(bool forceRedraw)
 }
 
 // ----------------------------------------------------------------------------------------
-void MenuItem::setSelected(bool selected) 
-{ 
-  myIsSelected = selected; 
+void MenuItem::setSelected(bool selected)
+{
+  myIsSelected = selected;
   markRedraw();
 }

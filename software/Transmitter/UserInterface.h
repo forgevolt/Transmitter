@@ -60,20 +60,20 @@ class UserInterface
     void stopMenu();
 
     void onClick();
-    void onUp(); 
-    void onDown(); 
-    void onRight(); 
-    void onLeft(); 
+    void onUp();
+    void onDown();
+    void onRight();
+    void onLeft();
 
-    // The main loop calls step() to compute the next state of the display objects. 
-    // The parameter 'dt' denotes the time elapsed since the last call to step(). 
-    // A call to draw() renders all display objects. 
+    // The main loop calls step() to compute the next state of the display objects.
+    // The parameter 'dt' denotes the time elapsed since the last call to step().
+    // A call to draw() renders all display objects.
     // loop() calls step(dt) and then draw() once per frame.
     void step(unsigned long dt);
     void draw();
-    
+
     // Access TFT information
-    TFT_eSPI& tft()  { return myTFT;          }    
+    TFT_eSPI& tft()  { return myTFT;          }
     int16_t height() { return myTFT.height(); }
     int16_t width()  { return myTFT.width();  }
 
@@ -103,9 +103,9 @@ class UserInterface
 
     // Simple menu system
     Menu* myMenu;
-    unsigned long myMenuStartDelay = 0; // Brief delay to let the switch turn green 
-                                        // on the display before the menu starts 
+    unsigned long myMenuStartDelay = 0; // Brief delay to let the switch turn green
+                                        // on the display before the menu starts
 
-    // Objects that are visualized on the display 
+    // Objects that are visualized on the display
     std::vector<DisplayObject*> myMainScreenObjects;
 };

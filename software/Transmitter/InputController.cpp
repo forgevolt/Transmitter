@@ -39,17 +39,17 @@ InputController::~InputController()
 // ----------------------------------------------------------------------------------------
 void InputController::begin()
 {
-  myBtnJoyL.attach(cPinJoyLBtn, INPUT_PULLUP);  
+  myBtnJoyL.attach(cPinJoyLBtn, INPUT_PULLUP);
   myBtnJoyL.setPressedState(LOW);
   myBtnJoyL.interval(cDebounceIntervalMs);
-  
-  myBtnJoyR.attach(cPinJoyRBtn, INPUT_PULLUP);  
+
+  myBtnJoyR.attach(cPinJoyRBtn, INPUT_PULLUP);
   myBtnJoyR.setPressedState(LOW);
   myBtnJoyR.interval(cDebounceIntervalMs);
 
   myJoyL.begin();
   myJoyR.begin();
- 
+
   mySwitches.begin();
 
   if (myTaskHandle != nullptr) // begin() called twice
@@ -111,10 +111,10 @@ void InputController::processEvents(void* pvParameters)
 {
   InputController* c = static_cast<InputController*>(pvParameters);
 
-  while (true) 
+  while (true)
   {
     xSemaphoreTake(c->myMutex, portMAX_DELAY);
-    
+
     // ---- Process buttons
     c->myBtnJoyL.update();
     if (c->myBtnJoyL.pressed())

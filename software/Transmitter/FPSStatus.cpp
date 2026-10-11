@@ -7,7 +7,7 @@ namespace
 {
 
 const float cPosX = 350;
-const float cPosY = 22; 
+const float cPosY = 22;
 
 // A gap between two step() calls longer than this means step() was not called, i.e. the menu was
 // open. Frames take about 33 ms, so a long one stays well below it.
@@ -27,7 +27,7 @@ void FPSStatus::step(unsigned long dt)
 {
   if (isActive() == false)
     return;
-      
+
   const int64_t now = esp_timer_get_time();
 
   // step() is not called while the menu is open. After such a pause, start a new count and show no
@@ -42,7 +42,7 @@ void FPSStatus::step(unsigned long dt)
   myLastStep = now;
 
   // Compute FPS each second
-  if (now - myStime > 1000000) 
+  if (now - myStime > 1000000)
   {
     myFPS = myFPSCounter;
     myStime = now;

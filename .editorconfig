@@ -1,0 +1,13 @@
+# Editor settings for the sketch sources - see https://editorconfig.org
+root = true
+
+[*.{c,cpp,h,ino}]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+# Generated from the PNGs in docs/, and copies of Bodmer's TFT_eSPI setup files: left as they are
+[{software/Transmitter/images/**,software/Config/**}]
+indent_style = unset
+indent_size = unset
+trim_trailing_whitespace = unset

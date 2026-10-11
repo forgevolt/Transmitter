@@ -22,12 +22,12 @@ class MenuItem : public DisplayObject
 
     void setPosY(int16_t y)         { myPosY = y; }
     void setSelected(bool selected);
-    
+
     // Process buttons and joystick movements
     virtual void onClick()       {}
     virtual void onUp()          {}
-    virtual void onDown()        {} 
-    virtual void onRight()       {} 
+    virtual void onDown()        {}
+    virtual void onRight()       {}
     virtual void onLeft()        {}
 
     const String& getName() const { return myMenuName; }

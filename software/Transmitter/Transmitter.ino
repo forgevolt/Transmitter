@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------------------------
-// Transmitter - controls a receiver (e.g. a hexapod). 
+// Transmitter - controls a receiver (e.g. a hexapod).
 //               Supports up to two 3-axis joysticks, 4 switches, 2 buttons, and an IMU.
-//               Includes a 480x320 display for a simple menu system and for visualizing  
+//               Includes a 480x320 display for a simple menu system and for visualizing
 //               input devices (e.g. joysticks) and the active receiver.
-//           
+//
 //           Christoph Streit - 2024-2026
 // ---------------------------------------------------------------------------------------------
 
@@ -191,7 +191,7 @@ void setup()
 
   // Always checked: a crash in the field is usually followed by a power-on.
   reportCoreDump();
-  
+
   // Allow every log level at run time. Which levels are compiled in is chosen with
   // Tools -> Core Debug Level in the Arduino IDE (None ... Verbose).
   esp_log_level_set("*", ESP_LOG_VERBOSE);
@@ -207,12 +207,12 @@ void setup()
   // read is 153 bit-times: 1.53 ms at 100 kHz against 0.38 ms here, in a 33 ms frame at 30 fps.
   Wire.begin(cI2C_SDA, cI2C_SCL, 400000);
   SPI.begin(cSPI_SCK, cSPI_MISO, cSPI_MOSI, cSPI_SS_CS);
-  
+
   // ---- Configuration
 
   hasOneJoystick = DeviceTypeConfiguration::getSetup();
 
-  // ---- Fuel Gauge 
+  // ---- Fuel Gauge
 
   startupStatus.fuelGauge = fuelGauge.begin();
   if (startupStatus.fuelGauge == false)
@@ -234,7 +234,7 @@ void setup()
   {
     Serial << "2-joystick configuration" << endl;
   }
- 
+
   // ---- IMU
 
   // begin() returns the status of its first register write, so 0 means the device ACKed. The
@@ -246,7 +246,7 @@ void setup()
     Serial << "ERROR: " << __PRETTY_FUNCTION__ << " -> MPU-6050 did not respond" << endl;
   }
 
-  // ---- ESP-NOW 
+  // ---- ESP-NOW
 
   transmitter = new Transmitter((hasOneJoystick == true) ? eTransmitter1Joy : eTransmitter2Joy);
   startupStatus.radio = transmitter->begin(ESPNowConnection::cDefaultWifiChannel);
@@ -372,14 +372,14 @@ static void sendControls()
     td.switch3 = ui.inputState().s3;
     td.switch4 = ui.inputState().s4;
 
-    td.angleX = td.angleY = 0.0f; 
+    td.angleX = td.angleY = 0.0f;
   }
   else
   {
     td.joyLX = ui.inputState().LX;
     td.joyLY = ui.inputState().LY;
     td.joyLZ = ui.inputState().LZ;
-    
+
     td.joyRX = ui.inputState().RX;
     td.joyRY = ui.inputState().RY;
     td.joyRZ = ui.inputState().RZ;

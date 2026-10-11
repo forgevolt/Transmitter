@@ -18,10 +18,10 @@
 class InputController
 {
   public:
-    // Snapshot of every input. 
-    struct State 
+    // Snapshot of every input.
+    struct State
     {
-      // true if the button was physically pressed (change from released to pressed)      
+      // true if the button was physically pressed (change from released to pressed)
       bool joyL = false, joyR = false;
 
       // true if the button is currently physically pressed
@@ -68,7 +68,7 @@ class InputController
     // Joysticks with a single button each
     Bounce2::Button myBtnJoyL;
     Bounce2::Button myBtnJoyR;
-    
+
     Joystick3Axis myJoyL;
     Joystick3Axis myJoyR;
     String myLabelBtnL, myLabelBtnR;
