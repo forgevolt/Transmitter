@@ -6,7 +6,7 @@
 namespace
 {
 
-constexpr uint32_t c80_100 = 0x46AB;
+constexpr uint32_t c80_100 = cGreenCol;
 constexpr uint32_t c60_80  = 0x9EC9;
 constexpr uint32_t c40_60  = 0xFEA0;
 constexpr uint32_t c20_40  = 0xEB86;

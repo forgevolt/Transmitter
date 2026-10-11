@@ -11,6 +11,11 @@
 constexpr uint32_t cBorderCol   = 0xAD55;    // border color of the display objects
 constexpr uint32_t cBorderColNA = 0x2945;    // border color when not active (e.g. joystick not installed)
 
+// Colors shared by several display objects (RGB565)
+constexpr uint32_t cBlueCol  = 0x4CBB;
+constexpr uint32_t cGreenCol = 0x46AB;
+constexpr uint32_t cRedCol   = 0xE0E3;
+
 constexpr int32_t cTFTWidth         = 480;
 constexpr int32_t cTFTHeight        = 320;
 

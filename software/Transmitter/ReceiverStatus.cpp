@@ -13,8 +13,8 @@
 namespace
 {
 
-const uint32_t cPairedCol    = 0x4CBB;
-const uint32_t cNotPairedCol = 0xE0E3;
+const uint32_t cPairedCol    = cBlueCol;
+const uint32_t cNotPairedCol = cRedCol;
 
 const float cPosX = 430;
 const float cPosY = 40;

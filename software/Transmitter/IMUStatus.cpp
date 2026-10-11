@@ -13,7 +13,7 @@ constexpr float cSpotR      = 5;     // Radius of the spot indicating the curren
 constexpr float cPosX       = cTFTWidth/2;
 constexpr float cPosY       = 283;
 constexpr float cAngleLimit = 45;
-constexpr uint32_t cSpotCol = 0x4CBB;
+constexpr uint32_t cSpotCol = cBlueCol;
 
 constexpr unsigned long cTempIntervalMs = 15000;
 

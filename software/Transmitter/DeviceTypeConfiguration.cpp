@@ -15,7 +15,7 @@ constexpr const char* cKey           = "oneJoySetup";
 
 const int32_t cLeftPosX     = 70;
 const int32_t cPosY         = 140;
-const uint32_t cSelectedCol = 0xE0E3;
+const uint32_t cSelectedCol = cRedCol;
 
 } // namespace
 

@@ -13,8 +13,8 @@ const float cRectLength = 100;           // H/V slider length
 const float cRectWidth  = 15;            // H/V slider width
 const float cRectR      = 8;             // H/V rounded rectangle radius
 const float cSpotR      = 5;             // radius of the spot indicating the current joystick position
-const uint32_t cSpotCol = 0x4CBB;
-const uint32_t cBtnCol  = 0x46AB;
+const uint32_t cSpotCol = cBlueCol;
+const uint32_t cBtnCol  = cGreenCol;
 const int32_t cArcR     = 28;            // Arc slider outer radius
 const int32_t cArcIR    = 13;            // Arc slider inner radius
 
