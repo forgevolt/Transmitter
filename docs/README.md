@@ -22,7 +22,8 @@ what makes it possible to change an icon later - the headers themselves are not 
 
 ## Wiring
 
-The wiring diagram is `hardware/schematic.pdf`. `software/Transmitter/PinMap.h` lists every pin
+There is no separate wiring diagram; the wiring has to be deduced from the schematic
+(`hardware/schematic.pdf`) and the pin assignments. `software/Transmitter/PinMap.h` lists every pin
 assignment, except the display's DC, RST and backlight pins, which `software/Transmitter/build_opt.h`
 sets together with the rest of the TFT_eSPI configuration.
 
