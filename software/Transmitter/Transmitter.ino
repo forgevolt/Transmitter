@@ -196,7 +196,7 @@ void setup()
   // Tools -> Core Debug Level in the Arduino IDE (None ... Verbose).
   esp_log_level_set("*", ESP_LOG_VERBOSE);
 
-  // The ADC settings are pinned rather than inherited: Joystick3Axis::cADC_MAX assumes 12-bit
+  // The ADC settings are pinned rather than inherited: the joysticks' adcMax (4095) assumes 12-bit
   // conversions, and the joystick travel assumes the ~3.3 V span that 11 dB attenuation gives.
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);

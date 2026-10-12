@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DisplayObject.h"
-#include "Joystick3Axis.h"
+#include "InputController.h"
 
 // ---- JoystickStatus --------------------------------------------------------------------
 // Displays the state of the three joystick axes on the screen.
@@ -25,6 +25,6 @@ class JoystickStatus : public DisplayObject
     InputController::State myLastState;
     String myLastLabel;
 
-    Joystick3Axis& myJoystick;
+    InputController::Joystick& myJoystick;
     bool myIsLeft;             // left or right joystick
 };

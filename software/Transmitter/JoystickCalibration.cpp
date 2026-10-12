@@ -4,12 +4,17 @@
 #include "JoystickCalibration.h"
 #include <VectorUtilities.h>
 using namespace vectorutilities;
+using namespace joystickutilities;
 
 
 // ---- JoystickCalibration ---------------------------------------------------------------
 
 namespace
 {
+
+// Raw range of an uncalibrated axis; the sliders are drawn against it
+const int cADC_MIN = 0;
+const int cADC_MAX = AnalogConfig().adcMax;
 
 // Center calibration lasts 6 s (3 s waiting, 3 s measuring)
 const unsigned long cCenterWaitDuration  = 3000; // wait time until the center measurements begin
@@ -50,13 +55,28 @@ const int32_t cRightZPosY = cRightXPosY  //                pos y
                           - cArcR;
 
 // The axes of one joystick that were not accepted, e.g. "X, Z". Empty if all were accepted.
-String rejectedAxes(const Joystick3Axis::CalibrationResult& result)
+String rejectedAxes(const CalibrationResult<3>& result)
 {
   String axes;
-  if (result.x == false) axes += "X";
-  if (result.y == false) axes += (axes.isEmpty() ? "Y" : ", Y");
-  if (result.z == false) axes += (axes.isEmpty() ? "Z" : ", Z");
+  if (result.accepted[0] == false) axes += "X";
+  if (result.accepted[1] == false) axes += (axes.isEmpty() ? "Y" : ", Y");
+  if (result.accepted[2] == false) axes += (axes.isEmpty() ? "Z" : ", Z");
   return axes;
+}
+
+// Applies a measured calibration and stores what the stick then uses: a rejected axis stores the
+// full range it fell back to. An inactive stick reports all axes as accepted and stores nothing.
+CalibrationResult<3> applyCalibration(InputController::Joystick& stick, const RangeTracker<3>& range,
+                                      const char* nameSpace)
+{
+  const CalibrationResult<3> result = stick.setCalibration(range.calibration());
+  if (stick.isActive())
+    saveCalibration(stick, nameSpace);
+
+  if (result.allAccepted() == false)
+    Serial << __PRETTY_FUNCTION__ << " -> " << nameSpace << ", axis " << rejectedAxes(result)
+           << ": no usable travel -> using full range" << endl;
+  return result;
 }
 
 } // namespace
@@ -116,50 +136,26 @@ void JoystickCalibration::step(unsigned long dt)
 // ----------------------------------------------------------------------------------------
 void JoystickCalibration::accumulateCenter()
 {
-  myCount++;
-  if (myJoyLeft.isActive())
-  {
-    mySumLX += myJoyLeft.getRawX();
-    mySumLY += myJoyLeft.getRawY();
-    mySumLZ += myJoyLeft.getRawZ();
-  }
-
-  if (myJoyRight.isActive())
-  {
-    mySumRX += myJoyRight.getRawX();
-    mySumRY += myJoyRight.getRawY();
-    mySumRZ += myJoyRight.getRawZ();
-  }
+  // An inactive stick is ignored
+  myCenterLeft.add(myJoyLeft);
+  myCenterRight.add(myJoyRight);
 }
 
 // ----------------------------------------------------------------------------------------
 // Averages the center samples, seeds the min/max travel with them and hands over to eMinMax.
 void JoystickCalibration::startMinMax()
 {
-  // Unlikely, but better safe than sorry (division by zero)
-  if (myCount == 0)
+  // Unlikely, but better safe than sorry: no center sample was taken
+  if (myCenterLeft.count() == 0 && myCenterRight.count() == 0)
   {
     myPhase = EPhase::eIdle;
     setState(EState::eNotActive);
-    Serial << __PRETTY_FUNCTION__  << " -> myCount == 0" << endl;
+    Serial << __PRETTY_FUNCTION__  << " -> no center samples" << endl;
     return;
   }
 
-  myCenterLX = mySumLX / myCount;
-  myCenterLY = mySumLY / myCount;
-  myCenterLZ = mySumLZ / myCount;
-
-  myMinLX = myMaxLX = myCenterLX;
-  myMinLY = myMaxLY = myCenterLY;
-  myMinLZ = myMaxLZ = myCenterLZ;
-
-  myCenterRX = mySumRX / myCount;
-  myCenterRY = mySumRY / myCount;
-  myCenterRZ = mySumRZ / myCount;
-
-  myMinRX = myMaxRX = myCenterRX;
-  myMinRY = myMaxRY = myCenterRY;
-  myMinRZ = myMaxRZ = myCenterRZ;
+  myRangeLeft  = RangeTracker<3>(myCenterLeft.center());
+  myRangeRight = RangeTracker<3>(myCenterRight.center());
 
   myPhase         = EPhase::eMinMax;
   myStopRequested = false;   // a press during the center phase does not skip this one
@@ -170,27 +166,9 @@ void JoystickCalibration::startMinMax()
 // ----------------------------------------------------------------------------------------
 void JoystickCalibration::accumulateMinMax()
 {
-  if (myJoyLeft.isActive())
-  {
-    const int x = myJoyLeft.getRawX();
-    const int y = myJoyLeft.getRawY();
-    const int z = myJoyLeft.getRawZ();
-
-    myMinLX = min(myMinLX, x);  myMaxLX = max(myMaxLX, x);
-    myMinLY = min(myMinLY, y);  myMaxLY = max(myMaxLY, y);
-    myMinLZ = min(myMinLZ, z);  myMaxLZ = max(myMaxLZ, z);
-  }
-
-  if (myJoyRight.isActive())
-  {
-    const int x = myJoyRight.getRawX();
-    const int y = myJoyRight.getRawY();
-    const int z = myJoyRight.getRawZ();
-
-    myMinRX = min(myMinRX, x);  myMaxRX = max(myMaxRX, x);
-    myMinRY = min(myMinRY, y);  myMaxRY = max(myMaxRY, y);
-    myMinRZ = min(myMinRZ, z);  myMaxRZ = max(myMaxRZ, z);
-  }
+  // An inactive stick is ignored
+  myRangeLeft.add(myJoyLeft);
+  myRangeRight.add(myJoyRight);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -200,9 +178,8 @@ void JoystickCalibration::accumulateMinMax()
 // says which one before the calibration closes.
 void JoystickCalibration::finish()
 {
-  // An inactive joystick reports all axes as accepted
-  myResultLeft  = myJoyLeft.setCalibrationData(myMinLX, myMaxLX, myCenterLX, myMinLY, myMaxLY, myCenterLY, myMinLZ, myMaxLZ, myCenterLZ);
-  myResultRight = myJoyRight.setCalibrationData(myMinRX, myMaxRX, myCenterRX, myMinRY, myMaxRY, myCenterRY, myMinRZ, myMaxRZ, myCenterRZ);
+  myResultLeft  = applyCalibration(myJoyLeft,  myRangeLeft,  InputController::cNamespaceJoyL);
+  myResultRight = applyCalibration(myJoyRight, myRangeRight, InputController::cNamespaceJoyR);
 
   if (myResultLeft.allAccepted() && myResultRight.allAccepted())
   {
@@ -311,14 +288,16 @@ void JoystickCalibration::drawMinMaxScreen(bool forceRedraw)
                                   170, cRectWidth-6, TFT_BLUE, TFT_BLUE);
 
   // ----- Left joystick
-  drawSliderH(cLeftXPosX, cLeftXPosY, myMinLX, myMaxLX, myCenterLX, myJoyLeft.getRawX(), myJoyLeft.isActive());
-  drawSliderV(cLeftYPosX, cLeftYPosY, myMinLY, myMaxLY, myCenterLY, myJoyLeft.getRawY(), myJoyLeft.isActive());
-  drawSliderA(cLeftZPosX, cLeftZPosY, myMinLZ, myMaxLZ, myCenterLZ, myJoyLeft.getRawZ(), myJoyLeft.isActive());
+  const RangeTracker<3>& l = myRangeLeft;
+  drawSliderH(cLeftXPosX, cLeftXPosY, l.min(0), l.max(0), l.center(0), myJoyLeft.readRaw(0), myJoyLeft.isActive());
+  drawSliderV(cLeftYPosX, cLeftYPosY, l.min(1), l.max(1), l.center(1), myJoyLeft.readRaw(1), myJoyLeft.isActive());
+  drawSliderA(cLeftZPosX, cLeftZPosY, l.min(2), l.max(2), l.center(2), myJoyLeft.readRaw(2), myJoyLeft.isActive());
 
   // ----- Right joystick
-  drawSliderH(cRightXPosX, cRightXPosY, myMinRX, myMaxRX, myCenterRX, myJoyRight.getRawX(), myJoyRight.isActive());
-  drawSliderV(cRightYPosX, cRightYPosY, myMinRY, myMaxRY, myCenterRY, myJoyRight.getRawY(), myJoyRight.isActive());
-  drawSliderA(cRightZPosX, cRightZPosY, myMinRZ, myMaxRZ, myCenterRZ, myJoyRight.getRawZ(), myJoyRight.isActive());
+  const RangeTracker<3>& r = myRangeRight;
+  drawSliderH(cRightXPosX, cRightXPosY, r.min(0), r.max(0), r.center(0), myJoyRight.readRaw(0), myJoyRight.isActive());
+  drawSliderV(cRightYPosX, cRightYPosY, r.min(1), r.max(1), r.center(1), myJoyRight.readRaw(1), myJoyRight.isActive());
+  drawSliderA(cRightZPosX, cRightZPosY, r.min(2), r.max(2), r.center(2), myJoyRight.readRaw(2), myJoyRight.isActive());
 }
 
 // ----------------------------------------------------------------------------------------
@@ -354,9 +333,8 @@ void JoystickCalibration::drawResultScreen(bool forceRedraw)
 // ----------------------------------------------------------------------------------------
 void JoystickCalibration::start()
 {
-  myCount = 0;
-  mySumLX = mySumLY = mySumLZ = 0;
-  mySumRX = mySumRY = mySumRZ = 0;
+  myCenterLeft.reset();
+  myCenterRight.reset();
 
   myPhase                = EPhase::eCenterWait;
   myStopRequested        = false;
@@ -381,14 +359,14 @@ void JoystickCalibration::drawSliderH(float x, float y, int min, int max, int ce
   if (active)
   {
     // Distance covered so far
-    myUI.tft().drawWideLine(x+cRectLength/2+mapf(max, center, Joystick3Axis::cADC_MAX, 0, cRectLength/2), y,
-                               x+mapf(min, Joystick3Axis::cADC_MIN, center, 0, cRectLength/2), y, cRectWidth-6, TFT_BLUE, TFT_BLUE);
+    myUI.tft().drawWideLine(x+cRectLength/2+mapf(max, center, cADC_MAX, 0, cRectLength/2), y,
+                               x+mapf(min, cADC_MIN, center, 0, cRectLength/2), y, cRectWidth-6, TFT_BLUE, TFT_BLUE);
 
     // Dynamic visualization of current axis position
     if (raw <= center)
-      myUI.tft().drawSpot(x+mapf(raw, Joystick3Axis::cADC_MIN, center, 0, cRectLength/2), y, cSpotR, TFT_NAVY, TFT_NAVY);
+      myUI.tft().drawSpot(x+mapf(raw, cADC_MIN, center, 0, cRectLength/2), y, cSpotR, TFT_NAVY, TFT_NAVY);
     else
-      myUI.tft().drawSpot(x+cRectLength/2+mapf(raw, center, Joystick3Axis::cADC_MAX, 0, cRectLength/2), y, cSpotR, TFT_NAVY, TFT_NAVY);
+      myUI.tft().drawSpot(x+cRectLength/2+mapf(raw, center, cADC_MAX, 0, cRectLength/2), y, cSpotR, TFT_NAVY, TFT_NAVY);
   }
 
   // Mid point indicator
@@ -405,14 +383,14 @@ void JoystickCalibration::drawSliderV(float x, float y, int min, int max, int ce
   if (active)
   {
     // Distance covered so far
-    myUI.tft().drawWideLine(x, y+cRectLength/2-mapf(max, center, Joystick3Axis::cADC_MAX, 0, cRectLength/2),
-                               x, y+cRectLength-mapf(min, Joystick3Axis::cADC_MIN, center, 0, cRectLength/2), cRectWidth-6, TFT_BLUE, TFT_BLUE);
+    myUI.tft().drawWideLine(x, y+cRectLength/2-mapf(max, center, cADC_MAX, 0, cRectLength/2),
+                               x, y+cRectLength-mapf(min, cADC_MIN, center, 0, cRectLength/2), cRectWidth-6, TFT_BLUE, TFT_BLUE);
 
     // Dynamic visualization of current axis position
     if (raw <= center)
-      myUI.tft().drawSpot(x, y+cRectLength-mapf(raw, Joystick3Axis::cADC_MIN, center, 0, cRectLength/2), cSpotR, TFT_NAVY, TFT_NAVY);
+      myUI.tft().drawSpot(x, y+cRectLength-mapf(raw, cADC_MIN, center, 0, cRectLength/2), cSpotR, TFT_NAVY, TFT_NAVY);
     else
-      myUI.tft().drawSpot(x, y+cRectLength/2-mapf(raw, center, Joystick3Axis::cADC_MAX, 0, cRectLength/2), cSpotR, TFT_NAVY, TFT_NAVY);
+      myUI.tft().drawSpot(x, y+cRectLength/2-mapf(raw, center, cADC_MAX, 0, cRectLength/2), cSpotR, TFT_NAVY, TFT_NAVY);
   }
 
   // Mid point indicator
@@ -430,20 +408,20 @@ void JoystickCalibration::drawSliderA(float x, float y, int min, int max, int ce
   {
     // Distance covered so far
     myUI.tft().drawSmoothArc(x, y, cArcR-4, cArcIR+3,
-                                mapf(min, Joystick3Axis::cADC_MIN, center, 185, 360),
-                                mapf(max, center, Joystick3Axis::cADC_MAX, 0, 175), TFT_BLUE, TFT_BLUE, true);
+                                mapf(min, cADC_MIN, center, 185, 360),
+                                mapf(max, center, cADC_MAX, 0, 175), TFT_BLUE, TFT_BLUE, true);
 
     // Dynamic visualization of current axis position
     if (raw <= center)
     {
-      float sx = -sinf((mapf(raw, Joystick3Axis::cADC_MIN, center, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + x;
-      float sy = +cosf((mapf(raw, Joystick3Axis::cADC_MIN, center, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + y;
+      float sx = -sinf((mapf(raw, cADC_MIN, center, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + x;
+      float sy = +cosf((mapf(raw, cADC_MIN, center, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + y;
       myUI.tft().drawSpot(sx, sy, cSpotR, TFT_NAVY, TFT_NAVY);
     }
     else
     {
-      float sx = -sinf(mapf(raw, center, Joystick3Axis::cADC_MAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + x;
-      float sy = +cosf(mapf(raw, center, Joystick3Axis::cADC_MAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + y;
+      float sx = -sinf(mapf(raw, center, cADC_MAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + x;
+      float sy = +cosf(mapf(raw, center, cADC_MAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + y;
       myUI.tft().drawSpot(sx, sy, cSpotR, TFT_NAVY, TFT_NAVY);
     }
   }

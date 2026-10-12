@@ -3,6 +3,7 @@
 #include "JoystickStatus.h"
 #include <VectorUtilities.h>
 using namespace vectorutilities;
+using namespace joystickutilities;
 
 // ---- JoystickStatus --------------------------------------------------------------------
 
@@ -145,9 +146,9 @@ void JoystickStatus::drawSliderH(float x, float y, int val)
   if (myJoystick.isActive())
   {
     if (val <= 0)
-      myBuf.drawSpot(x+mapf(val, Joystick3Axis::cMIN, 0, 0, cRectLength/2), y, cSpotR, cSpotCol);
+      myBuf.drawSpot(x+mapf(val, cMIN, 0, 0, cRectLength/2), y, cSpotR, cSpotCol);
     else
-      myBuf.drawSpot(x+cRectLength/2+mapf(val, 0, Joystick3Axis::cMAX, 0, cRectLength/2), y, cSpotR, cSpotCol);
+      myBuf.drawSpot(x+cRectLength/2+mapf(val, 0, cMAX, 0, cRectLength/2), y, cSpotR, cSpotCol);
   }
 
   // Mid point indicator
@@ -166,9 +167,9 @@ void JoystickStatus::drawSliderV(float x, float y, int val)
   if (myJoystick.isActive())
   {
     if (val <= 0)
-      myBuf.drawSpot(x, y+cRectLength-mapf(val, Joystick3Axis::cMIN, 0, 0, cRectLength/2), cSpotR, cSpotCol);
+      myBuf.drawSpot(x, y+cRectLength-mapf(val, cMIN, 0, 0, cRectLength/2), cSpotR, cSpotCol);
     else
-      myBuf.drawSpot(x, y+cRectLength/2-mapf(val, 0, Joystick3Axis::cMAX, 0, cRectLength/2), cSpotR, cSpotCol);
+      myBuf.drawSpot(x, y+cRectLength/2-mapf(val, 0, cMAX, 0, cRectLength/2), cSpotR, cSpotCol);
   }
 
   // Mid point indicator
@@ -188,14 +189,14 @@ void JoystickStatus::drawSliderA(float x, float y, int val, bool btnPressed)
   {
     if (val <= 0)
     {
-      float sx = -sinf((mapf(val, Joystick3Axis::cMIN, 0, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + x;
-      float sy = +cosf((mapf(val, Joystick3Axis::cMIN, 0, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + y;
+      float sx = -sinf((mapf(val, cMIN, 0, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + x;
+      float sy = +cosf((mapf(val, cMIN, 0, 185, 360))*deg2rad)*(cArcR+cArcIR)/2.0f + y;
       myBuf.drawSpot(sx, sy, cSpotR, cSpotCol);
     }
     else
     {
-      float sx = -sinf(mapf(val, 0, Joystick3Axis::cMAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + x;
-      float sy = +cosf(mapf(val, 0, Joystick3Axis::cMAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + y;
+      float sx = -sinf(mapf(val, 0, cMAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + x;
+      float sy = +cosf(mapf(val, 0, cMAX, 0, 175)*deg2rad)*(cArcR+cArcIR)/2.0f + y;
       myBuf.drawSpot(sx, sy, cSpotR, cSpotCol);
     }
   }

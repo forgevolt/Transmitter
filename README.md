@@ -114,7 +114,7 @@ Versions are the ones this project is built and tested against.
 **Bundled with the ESP32 board package** - nothing to install: `WiFi`, `Networking`, `Wire`,
 `SPI`, `Preferences`, and the ESP-IDF `driver/i2s_std.h` audio API that SoundEngine sits on.
 
-**From the Arduino Library Manager** - all of them, including the three written for this project:
+**From the Arduino Library Manager** - all of them, including the four written for this project:
 
 | Library | Version | Note |
 |---|---|---|
@@ -125,6 +125,7 @@ Versions are the ones this project is built and tested against.
 | Adafruit MAX1704X | 1.0.3 | |
 | Adafruit BusIO | 1.17.4 | dependency of MAX1704X |
 | [ESPNowUtilities](https://github.com/forgevolt/ESPNowUtilities) | 1.0.1 | the ESP-NOW transport `RCProtocol.h` is built on |
+| [JoystickUtilities](https://github.com/forgevolt/JoystickUtilities) | 1.0.0 | reading, calibrating and storing the joysticks |
 | [SoundEngine](https://github.com/forgevolt/SoundEngine) | 1.1.1 | `SoundEngine.h` and the `sounds/` clips |
 | [VectorUtilities](https://github.com/forgevolt/VectorUtilities) | 1.0.0 | `mapf()`, `deg2rad` and the disk mapping of the IMU display |
 

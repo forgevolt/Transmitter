@@ -13,12 +13,14 @@ keeps its own licence.
 | Adafruit BusIO    | MIT                                      | I2C access for the fuel gauge                |
 | Streaming         | LGPL-2.1-or-later                        | the `Serial <<` logging                      |
 | ESPNowUtilities   | MIT                                      | the ESP-NOW link to the robot                |
+| JoystickUtilities | MIT                                      | reading and calibrating the joysticks        |
 | SoundEngine       | MIT                                      | I2S playback and the built-in sounds         |
 | VectorUtilities   | MIT (raymath: zlib)                      | `mapf()`, `deg2rad`, the IMU disk mapping    |
 
-The last three are written for this project and published separately, under the same MIT
+The last four are written for this project and published separately, under the same MIT
 licence as this repository:
 [ESPNowUtilities](https://github.com/forgevolt/ESPNowUtilities),
+[JoystickUtilities](https://github.com/forgevolt/JoystickUtilities),
 [SoundEngine](https://github.com/forgevolt/SoundEngine) and
 [VectorUtilities](https://github.com/forgevolt/VectorUtilities). VectorUtilities' vector code is
 derived from raymath, part of [raylib](https://github.com/raysan5/raylib) (zlib licence); the

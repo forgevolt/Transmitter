@@ -2,6 +2,8 @@
 #include "InputController.h"
 #include "PinMap.h"
 
+using namespace joystickutilities;
+
 // ---- InputController -------------------------------------------------------------------
 
 namespace
@@ -9,12 +11,25 @@ namespace
 
 constexpr uint16_t cDebounceIntervalMs = 5; // 5 ms
 
+// Loads a stored calibration. Without one, the stick keeps the full ADC range.
+void loadStoredCalibration(InputController::Joystick& stick, const char* nameSpace)
+{
+  CalibrationResult<3> result;
+  if (loadCalibration(stick, nameSpace, &result) == false)
+    return;
+
+  for (size_t i = 0; i < 3; i++)
+    if (result.accepted[i] == false)
+      Serial << __PRETTY_FUNCTION__ << " -> " << nameSpace << ", axis " << "XYZ"[i]
+             << ": stored calibration leaves no usable travel -> using full range" << endl;
+}
+
 } // namespace
 
 // ----------------------------------------------------------------------------------------
 InputController::InputController()
-: myJoyL(cPinJoyLX, cPinJoyLY, cPinJoyLZ),
-  myJoyR(cPinJoyRX, cPinJoyRY, cPinJoyRZ),
+: myJoyL({ AnalogAxis(cPinJoyLX), AnalogAxis(cPinJoyLY), AnalogAxis(cPinJoyLZ) }),
+  myJoyR({ AnalogAxis(cPinJoyRX), AnalogAxis(cPinJoyRY), AnalogAxis(cPinJoyRZ) }),
   mySwitches(cPinS1, cPinS2, cPinS3, cPinS4)
 {
   // The mutex is created here rather than in begin() so that getState() is safe to call at any
@@ -49,6 +64,10 @@ void InputController::begin()
 
   myJoyL.begin();
   myJoyR.begin();
+
+  // Both sticks, active or not, so switching one on later finds its calibration
+  loadStoredCalibration(myJoyL, cNamespaceJoyL);
+  loadStoredCalibration(myJoyR, cNamespaceJoyR);
 
   mySwitches.begin();
 

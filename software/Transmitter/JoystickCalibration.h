@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MenuItem.h"
-#include "Joystick3Axis.h"
+#include "InputController.h"
 
 // ---- JoystickCalibration ---------------------------------------------------------------
 // Center and min/max calibration for one or two 3-axis joysticks.
@@ -45,8 +45,8 @@ class JoystickCalibration : public MenuItem
     void drawSliderA(float x, float y, int min, int max, int center, uint16_t raw, bool active);
 
   private:
-    Joystick3Axis& myJoyLeft;
-    Joystick3Axis& myJoyRight;
+    InputController::Joystick& myJoyLeft;
+    InputController::Joystick& myJoyRight;
 
     unsigned long myCalibrationStartTime = 0;
     EPhase myPhase = EPhase::eIdle;
@@ -55,17 +55,12 @@ class JoystickCalibration : public MenuItem
     // separate flag: the button can arrive at any point inside eMinMax or eResult.
     bool myStopRequested = false;
 
-    int myCount = 0;                                    // Number of samples of the center calibration
-    long mySumLX = 0, mySumLY = 0, mySumLZ = 0;         // Sum of all measurements for center calibration left
-    long mySumRX = 0, mySumRY = 0, mySumRZ = 0;         //   ... and right
-    int myCenterLX = 0, myCenterLY = 0, myCenterLZ = 0; // Center calibration values left
-    int myCenterRX = 0, myCenterRY = 0, myCenterRZ = 0; //   ... and right
-    int myMinLX = 0, myMinLY = 0, myMinLZ = 0;          // Min values measured left
-    int myMinRX = 0, myMinRY = 0, myMinRZ = 0;          //   ... and right
-    int myMaxLX = 0, myMaxLY = 0, myMaxLZ = 0;          // Max values measured left
-    int myMaxRX = 0, myMaxRY = 0, myMaxRZ = 0;          //   ... and right
+    joystickutilities::CenterSampler<3> myCenterLeft;         // Center samples left
+    joystickutilities::CenterSampler<3> myCenterRight;        //   ... and right
+    joystickutilities::RangeTracker<3>  myRangeLeft  {{}};    // Min/max travel left, seeded with the center
+    joystickutilities::RangeTracker<3>  myRangeRight {{}};    //   ... and right
 
-    unsigned long myResultStartTime = 0;                // When eResult was entered
-    Joystick3Axis::CalibrationResult myResultLeft;      // Accepted axes left
-    Joystick3Axis::CalibrationResult myResultRight;     //   ... and right
+    unsigned long myResultStartTime = 0;                      // When eResult was entered
+    joystickutilities::CalibrationResult<3> myResultLeft  {}; // Accepted axes left
+    joystickutilities::CalibrationResult<3> myResultRight {}; //   ... and right
 };

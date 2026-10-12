@@ -6,7 +6,7 @@
 #include <freertos/semphr.h>
 
 #include <Bounce2.h>
-#include "Joystick3Axis.h"
+#include <JoystickUtilities.h>
 #include "Switches.h"
 
 
@@ -18,6 +18,12 @@
 class InputController
 {
   public:
+    using Joystick = joystickutilities::Joystick<3>;
+
+    // Preferences namespaces of the stored calibrations, named after the X pin of each stick
+    static constexpr const char* cNamespaceJoyL = "Joystick36";
+    static constexpr const char* cNamespaceJoyR = "Joystick33";
+
     // Snapshot of every input.
     struct State
     {
@@ -53,8 +59,8 @@ class InputController
     State getState();
 
     // Direct access to the joystick objects, e.g. for calibration
-    Joystick3Axis& joyL() { return myJoyL; }
-    Joystick3Axis& joyR() { return myJoyR; }
+    Joystick& joyL() { return myJoyL; }
+    Joystick& joyR() { return myJoyR; }
 
     const String& getLabelBtnL() const { return myLabelBtnL; }
     void setLabelBtnL(const char* l)   { if (myLabelBtnL != l) myLabelBtnL = l; }
@@ -69,8 +75,8 @@ class InputController
     Bounce2::Button myBtnJoyL;
     Bounce2::Button myBtnJoyR;
 
-    Joystick3Axis myJoyL;
-    Joystick3Axis myJoyR;
+    Joystick myJoyL;
+    Joystick myJoyR;
     String myLabelBtnL, myLabelBtnR;
 
     Switches mySwitches;
