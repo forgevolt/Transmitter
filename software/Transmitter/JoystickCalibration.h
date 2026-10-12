@@ -54,8 +54,16 @@ class JoystickCalibration : public MenuItem
     void accumulateMinMax();
     void finish();
 
+    // What a joystick drawing of eCenter last showed, so it is redrawn only when that changes
+    struct StickView
+    {
+      bool valid = false;
+      ERelease state = ERelease::ePush;
+      int dotX = 0, dotY = 0, twistX = 0, twistY = 0;
+    };
+
     void drawCenterScreen(bool forceRedraw);
-    void drawReleaseStatus(const char* label, const CenterRelease& release, int y);
+    void drawStick(int x, const InputController::Joystick& stick, const CenterRelease& release, StickView& view);
     void drawMinMaxScreen(bool forceRedraw);
     void drawResultScreen(bool forceRedraw);
 
@@ -78,6 +86,8 @@ class JoystickCalibration : public MenuItem
     int myReleaseStep = 0;                                    // Current step of eCenter, 0 to 5
     CenterRelease myReleaseLeft;                              // Center releases left
     CenterRelease myReleaseRight;                             //   ... and right
+    StickView myViewLeft;                                     // Joystick drawings of eCenter left
+    StickView myViewRight;                                    //   ... and right
     joystickutilities::RangeTracker<3>  myRangeLeft  {{}};    // Min/max travel left, seeded with the center
     joystickutilities::RangeTracker<3>  myRangeRight {{}};    //   ... and right
 

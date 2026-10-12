@@ -12,15 +12,21 @@ using namespace joystickutilities;
 namespace
 {
 
-// Raw range of an uncalibrated axis; the sliders are drawn against it
-const int cADC_MIN = 0;
-const int cADC_MAX = AnalogConfig().adcMax;
+// ----- Timing
 
 // The center is measured after releases from six directions. Measured on both transmitters: a
 // released stick is still after 0.3 - 0.5 s, and at rest the noise is up to 8 counts in 100 ms.
 const unsigned long cStillDuration   = 200; // every axis within cStillCounts for this long (ms) ...
 const int           cStillCounts     = 15;  // ... counts as holding still
 const unsigned long cMeasureDuration = 300; // then the rest position is averaged for this long (ms)
+
+// Total of 10 seconds to move all axes (up to six) to min/max positions
+const unsigned long cMinMaxDuration = 10000;
+
+// How long the list of axes that were not accepted stays on screen (unless the button is pressed)
+const unsigned long cResultDuration = 5000;
+
+// ----- The six release steps of eCenter
 
 // Per step: the axis, the direction of the push (0: the first twist either way, the second the
 // other way) and the prompt
@@ -33,18 +39,34 @@ struct ReleaseStep
 
 const ReleaseStep cReleaseSteps[] =
 {
-  { 1, +1, "up" },          { 1, -1, "down" },
-  { 0, -1, "to the left" }, { 0, +1, "to the right" },
-  { 2,  0, "one way" },     { 2,  0, "the other way" }
+  { 1, +1, "Push up and let go" },          { 1, -1, "Push down and let go" },
+  { 0, -1, "Push to the left and let go" }, { 0, +1, "Push to the right and let go" },
+  { 2,  0, "Twist either way and let go" }, { 2,  0, "Twist the other way and let go" }
 };
 
 const int cNumReleaseSteps = sizeof(cReleaseSteps) / sizeof(cReleaseSteps[0]);
 
-// Total of 10 seconds to move all axes (up to six) to min/max positions
-const unsigned long cMinMaxDuration = 10000;
+// ----- Layout of eCenter
 
-// How long the list of axes that were not accepted stays on screen (unless the button is pressed)
-const unsigned long cResultDuration = 5000;
+// Joystick drawings of eCenter: one per joystick, placed like the joysticks themselves. Each is a
+// sprite of 2*cStickHalf pixels, centered at x and cStickY.
+const int   cStickY       = 190;
+const int   cStickHalf    = 72;
+const int   cStickR       = 44;     // circle of the joystick
+const int   cStickDotR    = 6;      // the dot that follows the joystick ...
+const int   cStickTravel  = cStickR - cStickDotR - 2;   // ... this far from the center at full deflection
+const float cArrowLength  = cStickR + 20;
+const float cArrowWidth   = 7;
+const float cArrowHead    = 15;
+const float cTwistR       = cStickR + 14;               // the twist arrow runs along this radius
+const int   cStatusY      = cStickY + cStickHalf + 4;   // the word below the drawing
+const int   cProgressY    = 306;                        // the six dots of the steps
+
+// ----- Layout of eMinMax
+
+// Raw range of an uncalibrated axis; the sliders are drawn against it
+const int cADC_MIN = 0;
+const int cADC_MAX = AnalogConfig().adcMax;
 
 const float cRectLength = 100;           // H/V slider length
 const float cRectWidth  = 15;            // H/V slider width
@@ -73,6 +95,108 @@ const int32_t cRightZPosX = cRightYPosX  //        z-axis, pos x
                           - cArcR;
 const int32_t cRightZPosY = cRightXPosY  //                pos y
                           - cArcR;
+
+// ----- Drawing helpers of eCenter
+
+// Angles as TFT_eSPI's smooth arcs count them: 0 at the bottom, clockwise. A positive twist turns
+// clockwise, as on the main screen.
+float arcX(float angle, float r) { return cStickHalf - sinf(angle*deg2rad)*r; }
+float arcY(float angle, float r) { return cStickHalf + cosf(angle*deg2rad)*r; }
+
+// A filled triangle with anti-aliased edges, to match the smooth lines and arcs next to it.
+// TFT_eSPI's fillTriangle() has hard edges, so each pixel's coverage is computed here from its
+// distance to the three edges, and the edge pixels are blended with what is already in the sprite.
+void fillSmoothTriangle(TFT_eSprite& s, float x0, float y0, float x1, float y1, float x2, float y2,
+                        uint32_t color)
+{
+  // Corners in the order that puts the inside on the positive side of every edge
+  if ((x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0) < 0)
+  {
+    const float tx = x1, ty = y1;
+    x1 = x2;  y1 = y2;
+    x2 = tx;  y2 = ty;
+  }
+
+  // Edge i as nx*x + ny*y + c: the distance in pixels, positive inside
+  const float px[3] = { x0, x1, x2 }, py[3] = { y0, y1, y2 };
+  float nx[3], ny[3], c[3];
+  for (int i = 0; i < 3; i++)
+  {
+    const int   j   = (i + 1) % 3;
+    const float dx  = px[j] - px[i], dy = py[j] - py[i];
+    const float len = sqrtf(dx*dx + dy*dy);
+    if (len < 0.5f)
+      return;
+    nx[i] = -dy/len;
+    ny[i] =  dx/len;
+    c[i]  = -(nx[i]*px[i] + ny[i]*py[i]);
+  }
+
+  const int xMin = int(floorf(fminf(x0, fminf(x1, x2)))), xMax = int(ceilf(fmaxf(x0, fmaxf(x1, x2))));
+  const int yMin = int(floorf(fminf(y0, fminf(y1, y2)))), yMax = int(ceilf(fmaxf(y0, fmaxf(y1, y2))));
+
+  for (int y = yMin; y <= yMax; y++)
+    for (int x = xMin; x <= xMax; x++)
+    {
+      float d = 1e9f;
+      for (int i = 0; i < 3; i++)
+        d = fminf(d, nx[i]*x + ny[i]*y + c[i]);
+
+      const float cover = d + 0.5f;   // fraction of the pixel inside
+      if (cover >= 1)
+        s.drawPixel(x, y, color);
+      else if (cover > 0)
+        s.drawPixel(x, y, s.alphaBlend(uint8_t(cover*255), uint16_t(color), s.readPixel(x, y)));
+    }
+}
+
+// A straight arrow from near the center outwards; (dx, dy) is the direction on the screen.
+void drawArrow(TFT_eSprite& s, float dx, float dy, uint32_t color)
+{
+  const float c = cStickHalf;
+  const float shaft = cArrowLength - cArrowHead*0.8f;
+  s.drawWideLine(c + dx*12, c + dy*12, c + dx*shaft, c + dy*shaft, cArrowWidth, color, TFT_BLACK);
+
+  const float base = cArrowLength - cArrowHead;
+  const float half = cArrowHead*0.7f;
+  fillSmoothTriangle(s, c + dx*cArrowLength, c + dy*cArrowLength,
+                        c + dx*base - dy*half, c + dy*base + dx*half,
+                        c + dx*base + dy*half, c + dy*base - dx*half, color);
+}
+
+// One arrowhead of the twist arrow, its base across the arc at 'angle'. The tip lies on the arc
+// itself, so the head follows the curve; direction +1 points clockwise, -1 counterclockwise.
+void drawTwistHead(TFT_eSprite& s, float angle, int direction, uint32_t color)
+{
+  const float tip  = angle + direction * cArrowHead / cTwistR / deg2rad;
+  const float half = cArrowHead*0.6f;
+  fillSmoothTriangle(s, arcX(tip, cTwistR), arcY(tip, cTwistR),
+                        arcX(angle, cTwistR + half), arcY(angle, cTwistR + half),
+                        arcX(angle, cTwistR - half), arcY(angle, cTwistR - half), color);
+}
+
+// The twist arrow over the top of the circle. heads: 0 both ends, +1 clockwise, -1 counterclockwise.
+// Each head starts a degree before the end of the arc, so it covers the arc's square end.
+void drawTwistArrow(TFT_eSprite& s, int heads, uint32_t color)
+{
+  const uint32_t from = 115, to = 245;
+
+  // TFT_eSPI's arc reaches about half a pixel beyond r and ir, so +-3 gives a band 7 pixels wide
+  // (as wide as the straight arrows), centered on cTwistR like the heads
+  const int32_t r = int32_t(cTwistR) + 3, ir = int32_t(cTwistR) - 3;
+  s.drawSmoothArc(cStickHalf, cStickHalf, r, ir, from, to, color, TFT_BLACK, false);
+  if (heads >= 0) drawTwistHead(s, to - 1.0f,   +1, color);
+  if (heads <= 0) drawTwistHead(s, from + 1.0f, -1, color);
+}
+
+void drawCheck(TFT_eSprite& s, uint32_t color)
+{
+  const float c = cStickHalf;
+  s.drawWideLine(c - 18, c + 2,  c - 6,  c + 14, cArrowWidth, color, TFT_BLACK);
+  s.drawWideLine(c - 6,  c + 14, c + 20, c - 14, cArrowWidth, color, TFT_BLACK);
+}
+
+// ----- Storing the result
 
 // The axes of one joystick that were not accepted, e.g. "X, Z". Empty if all were accepted.
 String rejectedAxes(const CalibrationResult<3>& result)
@@ -173,7 +297,6 @@ void JoystickCalibration::stepRelease(InputController::Joystick& stick, CenterRe
 
   const ReleaseStep& step = cReleaseSteps[myReleaseStep];
   const DirectionConfig directions;
-  const ERelease before = release.state;
 
   const int value = stick.get(step.axis);
   int deflection = value * step.sign;
@@ -239,9 +362,6 @@ void JoystickCalibration::stepRelease(InputController::Joystick& stick, CenterRe
       }
       break;
   }
-
-  if (release.state != before)
-    markPartialRedraw();
 }
 
 // ----------------------------------------------------------------------------------------
@@ -359,55 +479,129 @@ void JoystickCalibration::drawCenterScreen(bool forceRedraw)
 
   if (forceRedraw == true || needsRedraw() == true)
   {
-    const ReleaseStep& step = cReleaseSteps[myReleaseStep];
-    const String prompt = String(step.axis == 2 ? "Twist" : "Push")
-                        + (both ? " the joysticks " : " the joystick ") + step.prompt;
-
     myUI.tft().fillScreen(TFT_BLACK);
     myUI.tft().setTextDatum(TC_DATUM);
     myUI.tft().setTextColor(TFT_WHITE);
     myUI.tft().drawString("Center Position Calibration", myUI.width()/2, 20, 4);
     myUI.tft().drawFastHLine(0, 60, myUI.width(), TFT_WHITE);
-    myUI.tft().drawString(prompt, myUI.width()/2, 80, 4);
-    myUI.tft().drawString("and let go.", myUI.width()/2, 110, 4);
+    myUI.tft().drawString(cReleaseSteps[myReleaseStep].prompt, myUI.width()/2, 70, 4);
 
-    // ----- Progress bar: the steps done
-    myUI.tft().drawSmoothRoundRect(100-cRectR, 170-cRectWidth/2, cRectR, cRectR-1, myUI.width()-200+2*cRectR, cRectWidth, cBorderCol, TFT_BLACK);
-    if (myReleaseStep > 0)
-      myUI.tft().drawWideLine(100, 170, 100+float(myUI.width()-200)*myReleaseStep/cNumReleaseSteps, 170, cRectWidth-6, TFT_BLUE, TFT_BLUE);
-  }
-
-  if (forceRedraw == true || needsRedraw() == true || needsPartialRedraw() == true)
-  {
-    int y = 210;
-    if (myJoyLeft.isActive())
+    if (both)
     {
-      drawReleaseStatus(both ? "Left joystick: " : "Joystick: ", myReleaseLeft, y);
-      y += 30;
+      myUI.tft().setTextColor(cBorderCol);
+      myUI.tft().drawString("Left",  130, 100, 2);
+      myUI.tft().drawString("Right", 350, 100, 2);
     }
-    if (myJoyRight.isActive())
-      drawReleaseStatus("Right joystick: ", myReleaseRight, y);
+
+    // ----- The steps: done ones green
+    for (int i = 0; i < cNumReleaseSteps; i++)
+    {
+      const float x = myUI.width()/2 + (i - (cNumReleaseSteps-1)/2.0f)*22;
+      if (i < myReleaseStep)
+        myUI.tft().fillSmoothCircle(x, cProgressY, 6, cGreenCol, TFT_BLACK);
+      else
+        myUI.tft().drawSmoothCircle(x, cProgressY, 6, cBorderCol, TFT_BLACK);
+    }
+
+    myViewLeft.valid = myViewRight.valid = false;
   }
+
+  if (both)
+  {
+    drawStick(130, myJoyLeft,  myReleaseLeft,  myViewLeft);
+    drawStick(350, myJoyRight, myReleaseRight, myViewRight);
+  }
+  else if (myJoyLeft.isActive())
+    drawStick(myUI.width()/2, myJoyLeft, myReleaseLeft, myViewLeft);
+  else if (myJoyRight.isActive())
+    drawStick(myUI.width()/2, myJoyRight, myReleaseRight, myViewRight);
 }
 
 // ----------------------------------------------------------------------------------------
-void JoystickCalibration::drawReleaseStatus(const char* label, const CenterRelease& release, int y)
+// One joystick: the circle, an arrow in the step's direction in the color of its state (a check
+// mark once done), where the stick is - x/y as a dot in the push steps, the twist on the circle in
+// the twist steps - and the state in words below. Drawn only when something visible has changed.
+void JoystickCalibration::drawStick(int x, const InputController::Joystick& stick,
+                                    const CenterRelease& release, StickView& view)
 {
-  const char* status = "push";
-  switch (release.state)
+  const ReleaseStep& step = cReleaseSteps[myReleaseStep];
+  const bool twisting = (step.axis == 2);
+
+  StickView now;
+  now.valid = true;
+  now.state = release.state;
+  if (twisting)
   {
-    case ERelease::ePush:    status = "push";       break;
-    case ERelease::eLetGo:   status = "let go";     break;
-    case ERelease::eSettle:
-    case ERelease::eMeasure: status = "hold still"; break;
-    case ERelease::eDone:    status = "done";       break;
+    const float twist = stick.getZ() * 175.0f / cMAX;   // degrees, as on the main screen
+    now.twistX = lroundf(arcX(twist, cStickR));
+    now.twistY = lroundf(arcY(twist, cStickR));
+  }
+  else
+  {
+    now.dotX = cStickHalf + stick.getX() * cStickTravel / cMAX;
+    now.dotY = cStickHalf - stick.getY() * cStickTravel / cMAX;
   }
 
-  myUI.tft().setTextDatum(TC_DATUM);
-  myUI.tft().setTextColor(release.state == ERelease::eDone ? cGreenCol : TFT_WHITE, TFT_BLACK);
-  myUI.tft().setTextPadding(myUI.tft().textWidth("Right joystick: hold still", 4)); // blanks the previous text
-  myUI.tft().drawString(String(label) + status, myUI.width()/2, y, 4);
-  myUI.tft().setTextPadding(0);
+  if (view.valid && view.state == now.state && view.dotX == now.dotX && view.dotY == now.dotY &&
+      view.twistX == now.twistX && view.twistY == now.twistY)
+    return;
+
+  const char* word  = "push";
+  uint32_t    color = TFT_WHITE;
+  switch (now.state)
+  {
+    case ERelease::ePush:    word = "push";       color = TFT_WHITE;  break;
+    case ERelease::eLetGo:   word = "let go";     color = cBlueCol;   break;
+    case ERelease::eSettle:
+    case ERelease::eMeasure: word = "hold still"; color = TFT_ORANGE; break;
+    case ERelease::eDone:    word = "done";       color = cGreenCol;  break;
+  }
+
+  // ----- The state in words, when it has changed
+  if (view.valid == false || view.state != now.state)
+  {
+    myUI.tft().setTextDatum(TC_DATUM);
+    myUI.tft().setTextColor(color, TFT_BLACK);
+    myUI.tft().setTextPadding(myUI.tft().textWidth("hold still", 4)); // blanks the previous word
+    myUI.tft().drawString(word, x, cStatusY, 4);
+    myUI.tft().setTextPadding(0);
+  }
+
+  view = now;
+
+  // ----- The drawing
+  static bool reported = false;
+  if (createBuffer(2*cStickHalf, 2*cStickHalf, __PRETTY_FUNCTION__, reported) == false)
+    return;
+
+  myBuf.fillSprite(TFT_BLACK);
+  myBuf.drawSmoothCircle(cStickHalf, cStickHalf, cStickR, cBorderCol, TFT_BLACK);
+  myBuf.fillSmoothCircle(cStickHalf, cStickHalf, 3, cBorderCol, TFT_BLACK);
+
+  if (now.state == ERelease::eDone)
+    drawCheck(myBuf, color);
+  else if (step.axis == 0)
+    drawArrow(myBuf, float(step.sign), 0, color);
+  else if (step.axis == 1)
+    drawArrow(myBuf, 0, -float(step.sign), color);
+  else if (release.twistSign != 0)          // the second twist: the other way
+    drawTwistArrow(myBuf, -release.twistSign, color);
+  else if (now.state == ERelease::ePush)    // the first twist: either way ...
+    drawTwistArrow(myBuf, 0, color);
+  else                                      // ... until it was pushed
+    drawTwistArrow(myBuf, release.pushSign, color);
+
+  // ----- Where the stick is
+  if (twisting)
+    myBuf.fillSmoothCircle(now.twistX, now.twistY, 5, TFT_WHITE, TFT_BLACK);
+  else
+  {
+    myBuf.fillSmoothCircle(now.dotX, now.dotY, cStickDotR + 2, TFT_BLACK, TFT_BLACK);
+    myBuf.fillSmoothCircle(now.dotX, now.dotY, cStickDotR, TFT_WHITE, TFT_BLACK);
+  }
+
+  myBuf.pushSprite(x - cStickHalf, cStickY - cStickHalf);
+  myBuf.deleteSprite();
 }
 
 // ----------------------------------------------------------------------------------------
