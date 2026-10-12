@@ -16,9 +16,29 @@ namespace
 const int cADC_MIN = 0;
 const int cADC_MAX = AnalogConfig().adcMax;
 
-// Center calibration lasts 6 s (3 s waiting, 3 s measuring)
-const unsigned long cCenterWaitDuration  = 3000; // wait time until the center measurements begin
-const unsigned long cCenterTotalDuration = 6000;
+// The center is measured after releases from six directions. Measured on both transmitters: a
+// released stick is still after 0.3 - 0.5 s, and at rest the noise is up to 8 counts in 100 ms.
+const unsigned long cStillDuration   = 200; // every axis within cStillCounts for this long (ms) ...
+const int           cStillCounts     = 15;  // ... counts as holding still
+const unsigned long cMeasureDuration = 300; // then the rest position is averaged for this long (ms)
+
+// Per step: the axis, the direction of the push (0: the first twist either way, the second the
+// other way) and the prompt
+struct ReleaseStep
+{
+  size_t axis;
+  int sign;
+  const char* prompt;
+};
+
+const ReleaseStep cReleaseSteps[] =
+{
+  { 1, +1, "up" },          { 1, -1, "down" },
+  { 0, -1, "to the left" }, { 0, +1, "to the right" },
+  { 2,  0, "one way" },     { 2,  0, "the other way" }
+};
+
+const int cNumReleaseSteps = sizeof(cReleaseSteps) / sizeof(cReleaseSteps[0]);
 
 // Total of 10 seconds to move all axes (up to six) to min/max positions
 const unsigned long cMinMaxDuration = 10000;
@@ -101,23 +121,23 @@ void JoystickCalibration::step(unsigned long dt)
     case EPhase::eIdle:
       break;
 
-    case EPhase::eCenterWait:
-      if (elapsed > cCenterWaitDuration)
+    case EPhase::eCenter:
+      stepRelease(myJoyLeft,  myReleaseLeft,  InputController::cNamespaceJoyL);
+      stepRelease(myJoyRight, myReleaseRight, InputController::cNamespaceJoyR);
+
+      // Next step once every active joystick is done
+      if (myReleaseLeft.state == ERelease::eDone && myReleaseRight.state == ERelease::eDone)
       {
-        myPhase = EPhase::eCenterMeasure;
-        markPartialRedraw();
+        myUI.signal();
+        if (++myReleaseStep < cNumReleaseSteps)
+          startReleaseStep();
+        else
+          startMinMax();
       }
       break;
 
-    case EPhase::eCenterMeasure:
-      if (elapsed <= cCenterTotalDuration)
-        accumulateCenter();
-      else
-        startMinMax();
-      break;
-
     case EPhase::eMinMax:
-      if (myStopRequested == true || elapsed > cCenterTotalDuration + cMinMaxDuration)
+      if (myStopRequested == true || elapsed > cMinMaxDuration)
         finish();
       else
         accumulateMinMax();
@@ -134,32 +154,140 @@ void JoystickCalibration::step(unsigned long dt)
 }
 
 // ----------------------------------------------------------------------------------------
-void JoystickCalibration::accumulateCenter()
+// An inactive joystick has nothing to do.
+void JoystickCalibration::startReleaseStep()
 {
-  // An inactive stick is ignored
-  myCenterLeft.add(myJoyLeft);
-  myCenterRight.add(myJoyRight);
+  myReleaseLeft.state  = myJoyLeft.isActive()  ? ERelease::ePush : ERelease::eDone;
+  myReleaseRight.state = myJoyRight.isActive() ? ERelease::ePush : ERelease::eDone;
+  markRedraw();
 }
 
 // ----------------------------------------------------------------------------------------
-// Averages the center samples, seeds the min/max travel with them and hands over to eMinMax.
-void JoystickCalibration::startMinMax()
+// Advances one joystick through the current step. A push in the step's direction starts the
+// release over, also while it is settling or being measured.
+void JoystickCalibration::stepRelease(InputController::Joystick& stick, CenterRelease& release,
+                                      const char* nameSpace)
 {
-  // Unlikely, but better safe than sorry: no center sample was taken
-  if (myCenterLeft.count() == 0 && myCenterRight.count() == 0)
-  {
-    myPhase = EPhase::eIdle;
-    setState(EState::eNotActive);
-    Serial << __PRETTY_FUNCTION__  << " -> no center samples" << endl;
+  if (release.state == ERelease::eDone)
     return;
+
+  const ReleaseStep& step = cReleaseSteps[myReleaseStep];
+  const DirectionConfig directions;
+  const ERelease before = release.state;
+
+  const int value = stick.get(step.axis);
+  int deflection = value * step.sign;
+  if (step.sign == 0)
+    deflection = (release.twistSign == 0) ? abs(value) : -value * release.twistSign;
+
+  if (deflection > directions.onThreshold)
+  {
+    release.state    = ERelease::eLetGo;
+    release.pushSign = (value > 0) ? 1 : -1;
   }
 
-  myRangeLeft  = RangeTracker<3>(myCenterLeft.center());
-  myRangeRight = RangeTracker<3>(myCenterRight.center());
+  switch (release.state)
+  {
+    case ERelease::ePush:
+    case ERelease::eDone:
+      break;
 
-  myPhase         = EPhase::eMinMax;
-  myStopRequested = false;   // a press during the center phase does not skip this one
-  myUI.signal();
+    case ERelease::eLetGo:
+      if (abs(stick.getX()) < directions.offThreshold &&
+          abs(stick.getY()) < directions.offThreshold &&
+          abs(stick.getZ()) < directions.offThreshold)
+      {
+        release.state = ERelease::eSettle;
+        release.since = millis();
+        for (size_t i = 0; i < 3; i++)   // the still window starts here
+          release.lo[i] = release.hi[i] = stick.readRaw(i);
+      }
+      break;
+
+    case ERelease::eSettle:
+    case ERelease::eMeasure:
+      if (isStill(stick, release) == false)
+      {
+        release.state = ERelease::eSettle;
+        release.since = millis();
+        break;
+      }
+
+      if (release.state == ERelease::eSettle && millis() - release.since >= cStillDuration)
+      {
+        release.state = ERelease::eMeasure;
+        release.since = millis();
+        release.sampler.reset();
+      }
+
+      if (release.state == ERelease::eMeasure)
+      {
+        release.sampler.add(stick);
+        if (millis() - release.since >= cMeasureDuration)
+        {
+          const std::array<int, 3> rest = release.sampler.center();
+          for (size_t i = 0; i < 3; i++)
+            release.sum[i] += rest[i];
+          release.count++;
+          release.state = ERelease::eDone;
+          if (step.sign == 0 && release.twistSign == 0)
+            release.twistSign = release.pushSign;
+
+          Serial << nameSpace << ": release " << (myReleaseStep + 1) << " of " << cNumReleaseSteps
+                 << " at rest " << rest[0] << " " << rest[1] << " " << rest[2] << endl;
+        }
+      }
+      break;
+  }
+
+  if (release.state != before)
+    markPartialRedraw();
+}
+
+// ----------------------------------------------------------------------------------------
+// Widens the still window by one raw sample. When an axis moves further than cStillCounts, the
+// window starts again from this sample and the result is false.
+bool JoystickCalibration::isStill(const InputController::Joystick& stick, CenterRelease& release)
+{
+  std::array<int, 3> raw;
+  bool still = true;
+
+  for (size_t i = 0; i < 3; i++)
+  {
+    raw[i] = stick.readRaw(i);
+    release.lo[i] = min(release.lo[i], raw[i]);
+    release.hi[i] = max(release.hi[i], raw[i]);
+    if (release.hi[i] - release.lo[i] > cStillCounts)
+      still = false;
+  }
+
+  if (still == false)
+    release.lo = release.hi = raw;
+
+  return still;
+}
+
+// ----------------------------------------------------------------------------------------
+// Rounded average of the rest positions; zero for an inactive joystick, which has none.
+std::array<int, 3> JoystickCalibration::releaseCenter(const CenterRelease& release)
+{
+  std::array<int, 3> center {};
+  if (release.count > 0)
+    for (size_t i = 0; i < 3; i++)
+      center[i] = int((release.sum[i] + release.count/2) / release.count);
+  return center;
+}
+
+// ----------------------------------------------------------------------------------------
+// Seeds the min/max travel with the center from the releases and hands over to eMinMax.
+void JoystickCalibration::startMinMax()
+{
+  myRangeLeft  = RangeTracker<3>(releaseCenter(myReleaseLeft));
+  myRangeRight = RangeTracker<3>(releaseCenter(myReleaseRight));
+
+  myPhase                = EPhase::eMinMax;
+  myStopRequested        = false;   // a press during the center phase does not skip this one
+  myCalibrationStartTime = millis();
   markRedraw();
 }
 
@@ -208,8 +336,7 @@ void JoystickCalibration::draw(bool forceRedraw)
     case EPhase::eIdle:
       break;
 
-    case EPhase::eCenterWait:
-    case EPhase::eCenterMeasure:
+    case EPhase::eCenter:
       drawCenterScreen(forceRedraw);
       break;
 
@@ -228,40 +355,59 @@ void JoystickCalibration::draw(bool forceRedraw)
 // ----------------------------------------------------------------------------------------
 void JoystickCalibration::drawCenterScreen(bool forceRedraw)
 {
+  const bool both = myJoyLeft.isActive() && myJoyRight.isActive();
+
   if (forceRedraw == true || needsRedraw() == true)
   {
+    const ReleaseStep& step = cReleaseSteps[myReleaseStep];
+    const String prompt = String(step.axis == 2 ? "Twist" : "Push")
+                        + (both ? " the joysticks " : " the joystick ") + step.prompt;
+
     myUI.tft().fillScreen(TFT_BLACK);
     myUI.tft().setTextDatum(TC_DATUM);
     myUI.tft().setTextColor(TFT_WHITE);
     myUI.tft().drawString("Center Position Calibration", myUI.width()/2, 20, 4);
     myUI.tft().drawFastHLine(0, 60, myUI.width(), TFT_WHITE);
+    myUI.tft().drawString(prompt, myUI.width()/2, 80, 4);
+    myUI.tft().drawString("and let go.", myUI.width()/2, 110, 4);
+
+    // ----- Progress bar: the steps done
+    myUI.tft().drawSmoothRoundRect(100-cRectR, 170-cRectWidth/2, cRectR, cRectR-1, myUI.width()-200+2*cRectR, cRectWidth, cBorderCol, TFT_BLACK);
+    if (myReleaseStep > 0)
+      myUI.tft().drawWideLine(100, 170, 100+float(myUI.width()-200)*myReleaseStep/cNumReleaseSteps, 170, cRectWidth-6, TFT_BLUE, TFT_BLUE);
   }
 
-  if (myPhase == EPhase::eCenterWait)
+  if (forceRedraw == true || needsRedraw() == true || needsPartialRedraw() == true)
   {
-    // Remaining time is computed in unsigned arithmetic, the same idiom step() uses, so it stays
-    // correct across the millis() rollover. Only the finished value becomes a float.
-    const unsigned long elapsed   = millis() - myCalibrationStartTime;
-    const unsigned long remaining = (elapsed < cCenterWaitDuration) ? cCenterWaitDuration - elapsed : 0;
-
-    myUI.tft().setTextDatum(TC_DATUM);
-    myUI.tft().setTextColor(TFT_WHITE, TFT_BLACK);
-    myUI.tft().drawString("Calibration starts in ...", myUI.width()/2, 80, 4);
-    myUI.tft().setTextPadding(myUI.tft().textWidth("00", 4)); // The padding will blank any area not covered by the string.
-    myUI.tft().drawFloat(remaining/1000.0f, 0, myUI.width()/2, 110, 4);
-    myUI.tft().setTextPadding(0);
+    int y = 210;
+    if (myJoyLeft.isActive())
+    {
+      drawReleaseStatus(both ? "Left joystick: " : "Joystick: ", myReleaseLeft, y);
+      y += 30;
+    }
+    if (myJoyRight.isActive())
+      drawReleaseStatus("Right joystick: ", myReleaseRight, y);
   }
-  else
+}
+
+// ----------------------------------------------------------------------------------------
+void JoystickCalibration::drawReleaseStatus(const char* label, const CenterRelease& release, int y)
+{
+  const char* status = "push";
+  switch (release.state)
   {
-    if (needsPartialRedraw() == true)
-      myUI.tft().fillRect(0, 80, myUI.width(), 120, TFT_BLACK);
-
-    myUI.tft().drawString("Don't move the joysticks!", myUI.width()/2, 80, 4);
+    case ERelease::ePush:    status = "push";       break;
+    case ERelease::eLetGo:   status = "let go";     break;
+    case ERelease::eSettle:
+    case ERelease::eMeasure: status = "hold still"; break;
+    case ERelease::eDone:    status = "done";       break;
   }
 
-  // ----- Progress bar
-  myUI.tft().drawSmoothRoundRect(100-cRectR, 170-cRectWidth/2, cRectR, cRectR-1, myUI.width()-200+2*cRectR, cRectWidth, cBorderCol, TFT_BLACK);
-  myUI.tft().drawWideLine(100, 170, 100+float(myUI.width()-200)/cCenterTotalDuration*(millis()-myCalibrationStartTime), 170, cRectWidth-6, TFT_BLUE, TFT_BLUE);
+  myUI.tft().setTextDatum(TC_DATUM);
+  myUI.tft().setTextColor(release.state == ERelease::eDone ? cGreenCol : TFT_WHITE, TFT_BLACK);
+  myUI.tft().setTextPadding(myUI.tft().textWidth("Right joystick: hold still", 4)); // blanks the previous text
+  myUI.tft().drawString(String(label) + status, myUI.width()/2, y, 4);
+  myUI.tft().setTextPadding(0);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -283,7 +429,7 @@ void JoystickCalibration::drawMinMaxScreen(bool forceRedraw)
   // ----- Progress bar
   myUI.tft().drawSmoothRoundRect(100-cRectR, 170-cRectWidth/2, cRectR, cRectR-1, myUI.width()-200+2*cRectR, cRectWidth, cBorderCol, TFT_BLACK);
   myUI.tft().drawWideLine(100, 170,
-                                  100+min(float(myUI.width()-200)/cMinMaxDuration*(millis()-myCalibrationStartTime-cCenterTotalDuration),
+                                  100+min(float(myUI.width()-200)/cMinMaxDuration*(millis()-myCalibrationStartTime),
                                           float(myUI.width()-200)),
                                   170, cRectWidth-6, TFT_BLUE, TFT_BLUE);
 
@@ -333,14 +479,13 @@ void JoystickCalibration::drawResultScreen(bool forceRedraw)
 // ----------------------------------------------------------------------------------------
 void JoystickCalibration::start()
 {
-  myCenterLeft.reset();
-  myCenterRight.reset();
+  myReleaseLeft  = CenterRelease();
+  myReleaseRight = CenterRelease();
+  myReleaseStep  = 0;
+  startReleaseStep();
 
-  myPhase                = EPhase::eCenterWait;
-  myStopRequested        = false;
-  myCalibrationStartTime = millis();
-
-  markRedraw();
+  myPhase         = EPhase::eCenter;
+  myStopRequested = false;
   setState(EState::eActive);
 }
 
