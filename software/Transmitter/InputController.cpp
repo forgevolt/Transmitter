@@ -11,6 +11,16 @@ namespace
 
 constexpr uint16_t cDebounceIntervalMs = 5; // 5 ms
 
+// The twist axes get a wider dead zone than the default 50. Measured after calibration: one twist
+// axis came to rest up to 63 counts from its center, X and Y up to 44. A function rather than a
+// constant, because the joysticks are built before setup(), possibly before such a constant.
+AnalogConfig twistConfig()
+{
+  AnalogConfig config;
+  config.deadzone = 80;
+  return config;
+}
+
 // Loads a stored calibration. Without one, the stick keeps the full ADC range.
 void loadStoredCalibration(InputController::Joystick& stick, const char* nameSpace)
 {
@@ -28,8 +38,8 @@ void loadStoredCalibration(InputController::Joystick& stick, const char* nameSpa
 
 // ----------------------------------------------------------------------------------------
 InputController::InputController()
-: myJoyL({ AnalogAxis(cPinJoyLX), AnalogAxis(cPinJoyLY), AnalogAxis(cPinJoyLZ) }),
-  myJoyR({ AnalogAxis(cPinJoyRX), AnalogAxis(cPinJoyRY), AnalogAxis(cPinJoyRZ) }),
+: myJoyL({ AnalogAxis(cPinJoyLX), AnalogAxis(cPinJoyLY), AnalogAxis(cPinJoyLZ, false, twistConfig()) }),
+  myJoyR({ AnalogAxis(cPinJoyRX), AnalogAxis(cPinJoyRY), AnalogAxis(cPinJoyRZ, false, twistConfig()) }),
   mySwitches(cPinS1, cPinS2, cPinS3, cPinS4)
 {
   // The mutex is created here rather than in begin() so that getState() is safe to call at any
